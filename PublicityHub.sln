@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicityHub.API", "PublicityHub.API\PublicityHub.API.csproj", "{34B51DB2-3506-41D2-B600-3EF8DFD6D956}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicityHub.Admin", "PublicityHub.Admin\PublicityHub.Admin.csproj", "{DB1924FC-9C9A-4214-A884-0453CE6BFE19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicityHub.Domain", "PublicityHub.Domain\PublicityHub.Domain.csproj", "{FA62EC5C-6E99-4F1B-BF37-4C0A8C13FDFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicityHub.Application", "PublicityHub.Application\PublicityHub.Application.csproj", "{4099AE69-6883-4E9E-AEDD-B2FD90A4A328}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicityHub.Infrastructure", "PublicityHub.Infrastructure\PublicityHub.Infrastructure.csproj", "{53DB2AB8-E43E-4139-A555-9C650B19E67D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{34B51DB2-3506-41D2-B600-3EF8DFD6D956}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34B51DB2-3506-41D2-B600-3EF8DFD6D956}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34B51DB2-3506-41D2-B600-3EF8DFD6D956}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34B51DB2-3506-41D2-B600-3EF8DFD6D956}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB1924FC-9C9A-4214-A884-0453CE6BFE19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB1924FC-9C9A-4214-A884-0453CE6BFE19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB1924FC-9C9A-4214-A884-0453CE6BFE19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB1924FC-9C9A-4214-A884-0453CE6BFE19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA62EC5C-6E99-4F1B-BF37-4C0A8C13FDFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA62EC5C-6E99-4F1B-BF37-4C0A8C13FDFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA62EC5C-6E99-4F1B-BF37-4C0A8C13FDFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA62EC5C-6E99-4F1B-BF37-4C0A8C13FDFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4099AE69-6883-4E9E-AEDD-B2FD90A4A328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4099AE69-6883-4E9E-AEDD-B2FD90A4A328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4099AE69-6883-4E9E-AEDD-B2FD90A4A328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4099AE69-6883-4E9E-AEDD-B2FD90A4A328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53DB2AB8-E43E-4139-A555-9C650B19E67D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53DB2AB8-E43E-4139-A555-9C650B19E67D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53DB2AB8-E43E-4139-A555-9C650B19E67D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53DB2AB8-E43E-4139-A555-9C650B19E67D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

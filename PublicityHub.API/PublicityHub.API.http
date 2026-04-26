@@ -1,0 +1,6 @@
+@PublicityHub.API_HostAddress = http://localhost:5072
+
+GET {{PublicityHub.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
