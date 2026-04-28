@@ -13,7 +13,7 @@ public class JobAssignment
 
     public int WorkerId { get; set; }
 
-    public string Status { get; set; } = "accepted";
+    public string Status { get; set; } = "pending";
 
     public DateTime AcceptedAt { get; set; }
 

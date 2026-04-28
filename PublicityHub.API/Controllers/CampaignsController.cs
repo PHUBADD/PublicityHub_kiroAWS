@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PublicityHub.Application.Services;
 using PublicityHub.Application.DTOs.Campaigns;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PublicityHub.API.Controllers;
 
@@ -16,6 +17,7 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpGet]
+    //[Authorize(Roles = "Customer")]
     public async Task<IActionResult> Get()
     {
         var data = await _service.GetAllAsync();
@@ -23,6 +25,7 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpPost]
+    //[Authorize(Roles = "Customer")]
     public async Task<IActionResult> Create(CreateCampaignDto dto)
     {
         var result = await _service.CreateAsync(dto);

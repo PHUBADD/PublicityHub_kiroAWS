@@ -13,7 +13,6 @@ public class UsersController : ControllerBase
     {
         _service = service;
     }
-    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
@@ -39,4 +38,14 @@ public class UsersController : ControllerBase
             token = token
         });
     }
+
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+        return Ok(new { userId, role });
+    }
+
 }
