@@ -3,7 +3,6 @@ using PublicityHub.Infrastructure.Data;
 using PublicityHub.Domain.Entities;
 using PublicityHub.Application.DTOs.Campaigns;
 
-
 namespace PublicityHub.Application.Services;
 
 public class CampaignService : ICampaignService
@@ -17,20 +16,31 @@ public class CampaignService : ICampaignService
 
     public async Task<List<CampaignDto>> GetAllAsync()
     {
-        return await _context.Campaigns
+        var campaigns = await _context.Campaigns
             .Include(c => c.CreatedByUser)
-            .Select(c => new CampaignDto
-            {
-                Id = c.Id,
-                Title = c.Title,
-                Amount = c.Amount,
-                CreatedByName = c.CreatedByUser!.FullName
-            })
             .ToListAsync();
+
+        if (campaigns.Count == 0)
+            throw new Exception("No campaigns found");
+
+        return campaigns.Select(c => new CampaignDto
+        {
+            Id = c.Id,
+            Title = c.Title,
+            Amount = c.Amount,
+            CreatedByName = c.CreatedByUser?.FullName ?? string.Empty
+        }).ToList();
     }
 
     public async Task<CampaignDto> CreateAsync(CreateCampaignDto dto)
     {
+        //  Validate provider exists
+        var user = await _context.Users.FindAsync(dto.CreatedBy);
+
+        if (user == null)
+            throw new Exception("Invalid provider. User not found");
+
+        //  Create campaign
         var campaign = new Campaign
         {
             Title = dto.Title,
@@ -44,14 +54,12 @@ public class CampaignService : ICampaignService
         _context.Campaigns.Add(campaign);
         await _context.SaveChangesAsync();
 
-        var user = await _context.Users.FindAsync(dto.CreatedBy);
-
         return new CampaignDto
         {
             Id = campaign.Id,
             Title = campaign.Title,
             Amount = campaign.Amount,
-            CreatedByName = user?.FullName ?? ""
+            CreatedByName = user.FullName
         };
     }
 }

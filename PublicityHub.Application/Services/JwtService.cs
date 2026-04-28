@@ -4,37 +4,54 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-public class JwtService : IJwtService
+namespace PublicityHub.Application.Services
 {
-    private readonly IConfiguration _config;
-
-    public JwtService(IConfiguration config)
+    public class JwtService : IJwtService
     {
-        _config = config;
-    }
+        private readonly IConfiguration _config;
 
-    public string GenerateToken(int userId, string role)
-    {
-        var claims = new[]
+        public JwtService(IConfiguration config)
         {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Role, role)
-        };
+            _config = config;
+        }
 
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"])
-        );
+        public string GenerateToken(int userId, string role)
+        {
+            var jwtKey = _config["Jwt:Key"];
+            var issuer = _config["Jwt:Issuer"];
+            var audience = _config["Jwt:Audience"];
 
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            //  Exception handling only (no logic change)
+            if (string.IsNullOrWhiteSpace(jwtKey))
+                throw new Exception("JWT Key is not configured");
 
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
-            signingCredentials: creds
-        );
+            if (string.IsNullOrWhiteSpace(issuer))
+                throw new Exception("JWT Issuer is not configured");
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+            if (string.IsNullOrWhiteSpace(audience))
+                throw new Exception("JWT Audience is not configured");
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, role)
+            };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey)
+            );
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }

@@ -31,13 +31,15 @@ public class JobAssignmentService : IJobAssignmentService
                 WorkerId = dto.WorkerId,
                 Status = "already_assigned"
             };
+            // use exception instead of response
+            throw new Exception("Job already assigned to this worker");
         }
 
         var entity = new JobAssignment
         {
             CampaignId = dto.CampaignId,
             WorkerId = dto.WorkerId,
-            Status = "pending" //  correct flow
+            Status = "pending"
         };
 
         _context.JobAssignments.Add(entity);
@@ -147,7 +149,7 @@ public class JobAssignmentService : IJobAssignmentService
     }
 
     // =========================
-    // GET JOBS BY CAMPAIGN (useful for admin/user view)
+    // GET JOBS BY CAMPAIGN
     // =========================
     public async Task<List<JobAssignmentDto>> GetByCampaignAsync(int campaignId)
     {
