@@ -24,12 +24,14 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IJobAssignmentService, JobAssignmentService>();
 builder.Services.AddScoped<IProofService, ProofService>();
-
-
 // =========================
 // JWT Authentication (FINAL FIX)
 // =========================
 var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new Exception("JWT Key is missing in configuration");
+
 var key = Encoding.UTF8.GetBytes(jwtKey!);
 
 builder.Services.AddAuthentication(options =>
@@ -112,6 +114,19 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+//CORS (only needed if MVC runs on a different origin)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AdminPolicy", policy =>
+    {
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .SetIsOriginAllowed(_ => true);
+    });
+});
+
 var app = builder.Build();
 
 // =========================
@@ -124,9 +139,11 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseCors("AdminPolicy");
+
 //  VERY IMPORTANT ORDER
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthentication();
+//app.UseAuthorization();
 
 app.MapControllers();
 

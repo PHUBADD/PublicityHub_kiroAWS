@@ -1,8 +1,83 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<CampaignViewModel>
+@{
+    Layout = "_Layout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h2>Campaign Overview</h2>
+
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}
+
+@if (!Model.Any())
+{
+    <p>No campaigns found.</p>
+}
+else
+{
+    <div class="campaign-grid">
+        @foreach (var campaign in Model)
+        {
+            <div class="campaign-card">
+                <h3>@campaign.Title</h3>
+
+                <p>
+                    <strong>Amount:</strong> ₹@campaign.Amount
+                </p>
+
+                <p>
+                    <strong>Created By:</strong> @campaign.CreatedByName
+                </p>
+
+                <a class="btn-view"
+                   href="/Proof/ByCampaign/@campaign.Id">
+                    View Proofs
+                </a>
+
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .btn-view {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #2563eb;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+        .btn-view:hover {
+            background: #1e40af;
+        }
+
+    .campaign-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .campaign-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    }
+
+        .campaign-card h3 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+
+        .campaign-card p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #374151;
+        }
+</style>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PublicityHub.Application.DTOs.Proofs;
 using PublicityHub.Application.Services;
 
@@ -7,10 +8,11 @@ using PublicityHub.Application.Services;
 public class ProofsController : ControllerBase
 {
     private readonly IProofService _service;
-
-    public ProofsController(IProofService service)
+    private readonly ICampaignService _campaignService;
+    public ProofsController(IProofService service , ICampaignService campaignService)
     {
         _service = service;
+        _campaignService = campaignService;
     }
 
     [HttpPost]
@@ -41,4 +43,11 @@ public class ProofsController : ControllerBase
         var result = await _service.GetByAssignmentAsync(assignmentId);
         return Ok(result);
     }
+    [HttpGet("campaign/{campaignId}")]
+    public async Task<IActionResult> GetByCampaign(int campaignId)
+    {
+        var proofs = await _campaignService.GetProofsByCampaignAsync(campaignId);
+        return Ok(proofs);
+    }
+
 }

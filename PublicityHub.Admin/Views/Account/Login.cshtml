@@ -1,0 +1,104 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Admin Login - PublicityHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 40px;
+            width: 360px;
+            border-radius: 10px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 25px;
+            color: #111827;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .login-card button:hover {
+            background: #1e40af;
+        }
+
+        .error {
+            margin-top: 15px;
+            color: #dc2626;
+            font-size: 14px;
+        }
+
+        .footer-text {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>PublicityHub Admin</h2>
+
+
+        <form method="post" action="/Account/Login">
+            <input type="text"
+                   name="phoneNumber"
+                   placeholder="Admin Phone Number"
+                   required />
+
+            <button type="submit">Login</button>
+        </form>
+
+
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error">
+                @ViewBag.Error
+            </div>
+        }
+
+        <div class="footer-text">
+            Admin access only
+        </div>
+    </div>
+
+</body>
+</html>

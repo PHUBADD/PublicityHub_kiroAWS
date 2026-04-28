@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PublicityHub.Infrastructure.Data;
-using PublicityHub.Domain.Entities;
 using PublicityHub.Application.DTOs.Campaigns;
+using PublicityHub.Application.DTOs.Proofs;
+using PublicityHub.Domain.Entities;
+using PublicityHub.Infrastructure.Data;
 
 namespace PublicityHub.Application.Services;
 
@@ -61,5 +62,37 @@ public class CampaignService : ICampaignService
             Amount = campaign.Amount,
             CreatedByName = user.FullName
         };
+    }
+    public async Task<List<CampaignProofCountDto>> GetProofCountsAsync()
+    {
+        return await
+            (from proof in _context.Proofs
+             join assignment in _context.JobAssignments
+                on proof.AssignmentId equals assignment.Id
+             group proof by assignment.CampaignId into g
+             select new CampaignProofCountDto
+             {
+                 CampaignId = g.Key,
+                 TotalProofs = g.Count(),
+                 PendingProofs = g.Count(p => p.Status == "pending")
+             })
+            .ToListAsync();
+    }
+
+    public async Task<List<ProofDto>> GetProofsByCampaignAsync(int campaignId)
+    {
+        return await (
+            from proof in _context.Proofs
+            join assignment in _context.JobAssignments
+                on proof.AssignmentId equals assignment.Id
+            where assignment.CampaignId == campaignId
+            select new ProofDto
+            {
+                Id = proof.Id,
+                AssignmentId = proof.AssignmentId,
+                ImageUrl = proof.ImageUrl,
+                Status = proof.Status
+            }
+        ).ToListAsync();
     }
 }

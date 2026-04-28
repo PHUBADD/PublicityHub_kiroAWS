@@ -1,0 +1,35 @@
+﻿@model List<ProofViewModel>
+
+@{
+    Layout = "_Layout";
+}
+
+<h2>Proofs for Campaign @ViewBag.CampaignId</h2>
+
+@if (!Model.Any())
+{
+    <p>No proofs uploaded for this campaign yet.</p>
+}
+else
+{
+    <div class="proof-grid">
+        @foreach (var proof in Model)
+        {
+            <div class="proof-card">
+                <img src="@proof.ImageUrl" />
+
+                <p>Status: <strong>@proof.Status</strong></p>
+
+                <form method="post" action="/Proof/Approve">
+                    <input type="hidden" name="id" value="@proof.Id" />
+                    <button class="approve">Approve</button>
+                </form>
+
+                <form method="post" action="/Proof/Reject">
+                    <input type="hidden" name="id" value="@proof.Id" />
+                    <button class="reject">Reject</button>
+                </form>
+            </div>
+        }
+    </div>
+}

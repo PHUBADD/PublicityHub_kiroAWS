@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PublicityHub.Application.Services;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PublicityHub.Application.DTOs.Campaigns;
-using Microsoft.AspNetCore.Authorization;
+using PublicityHub.Application.Services;
 
 namespace PublicityHub.API.Controllers;
 
@@ -31,4 +32,18 @@ public class CampaignsController : ControllerBase
         var result = await _service.CreateAsync(dto);
         return Ok(result);
     }
+    [HttpGet("proof-counts")]
+    public async Task<IActionResult> GetProofCounts()
+    {
+        var counts = await _service.GetProofCountsAsync();
+        return Ok(counts);
+    }
+    //joins JobAssignments + Proofs.
+    [HttpGet("campaign/{campaignId}")]
+    public async Task<IActionResult> GetProofsByCampaign(int campaignId)
+    {
+        var proofs = await _service.GetProofsByCampaignAsync(campaignId);
+        return Ok(proofs);
+    }
+
 }
