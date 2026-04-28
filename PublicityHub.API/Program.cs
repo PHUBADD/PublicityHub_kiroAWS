@@ -21,6 +21,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IJobAssignmentService, JobAssignmentService>();
+builder.Services.AddScoped<IProofService, ProofService>();
+
 
 // =========================
 // JWT Authentication (FINAL FIX)
@@ -117,6 +120,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 //  VERY IMPORTANT ORDER
 app.UseAuthentication();
