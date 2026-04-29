@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PublicityHub.Domain.Entities;
+using PublicityHub.Domain.Enums;
 
 namespace PublicityHub.Infrastructure.Data;
 
@@ -57,9 +58,20 @@ public class AppDbContext : DbContext
 
             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
 
-            // 🔥 Relationship: Campaign → User
+            entity.Property(e => e.UpdatedAt)
+                  .HasColumnName("updated_at")
+                  .HasDefaultValueSql("now()");
+
+            //  Enum mapping and  default
+
+            entity.Property(e => e.Status)
+                  .HasColumnName("status")
+                  .HasConversion<string>()
+                  .HasDefaultValue(CampaignStatus.Draft);
+
+
+            // Campaign - User
             entity.HasOne(e => e.CreatedByUser)
                   .WithMany(u => u.Campaigns)
                   .HasForeignKey(e => e.CreatedBy)
@@ -78,12 +90,16 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CampaignId).HasColumnName("campaign_id");
             entity.Property(e => e.WorkerId).HasColumnName("worker_id");
-            entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.AcceptedAt).HasColumnName("accepted_at");
             entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
 
+            //  Enum mapping and default
+
             entity.Property(e => e.Status)
-                  .HasDefaultValue("accepted");
+                  .HasColumnName("status")
+                  .HasConversion<string>()
+                  .HasDefaultValue(AssignmentStatus.Created);
+
 
             // Campaign relation
             entity.HasOne(e => e.Campaign)
@@ -115,12 +131,16 @@ public class AppDbContext : DbContext
             entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.Latitude).HasColumnName("latitude");
             entity.Property(e => e.Longitude).HasColumnName("longitude");
-            entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.UploadedAt).HasColumnName("uploaded_at");
             entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
 
+            //  Enum mapping and default
+
             entity.Property(e => e.Status)
-                  .HasDefaultValue("pending");
+                  .HasColumnName("status")
+                  .HasConversion<string>()
+                  .HasDefaultValue(ProofStatus.Uploaded);
+
 
             entity.HasOne(e => e.JobAssignment)
                   .WithOne(j => j.Proof)

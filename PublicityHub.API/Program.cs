@@ -1,3 +1,5 @@
+
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -68,12 +70,16 @@ builder.Services.AddAuthorization();
 // =========================
 // Controllers
 // =========================
-builder.Services.AddControllers()
+
+builder.Services
+    .AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler =
-            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()
+        );
     });
+
 
 // =========================
 // Swagger (ONLY ONCE)

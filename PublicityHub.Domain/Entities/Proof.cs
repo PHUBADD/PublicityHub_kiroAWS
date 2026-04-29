@@ -1,4 +1,6 @@
-﻿namespace PublicityHub.Domain.Entities;
+﻿using PublicityHub.Domain.Enums;
+
+namespace PublicityHub.Domain.Entities;
 
 public class Proof
 {
@@ -12,7 +14,8 @@ public class Proof
 
     public decimal Longitude { get; set; }
 
-    public string Status { get; set; } = "pending";
+
+    public ProofStatus Status { get; set; }
 
     public DateTime UploadedAt { get; set; }
 

@@ -1,4 +1,6 @@
-﻿namespace PublicityHub.Application.DTOs.Campaigns;
+﻿using PublicityHub.Domain.Enums;
+
+namespace PublicityHub.Application.DTOs.Campaigns;
 
 public class CampaignDto
 {
@@ -6,4 +8,6 @@ public class CampaignDto
     public string Title { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string CreatedByName { get; set; } = string.Empty;
+    public CampaignStatus Status { get; set; }
+
 }

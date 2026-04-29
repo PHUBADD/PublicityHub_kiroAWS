@@ -46,4 +46,11 @@ public class JobAssignmentsController : ControllerBase
         var data = await _service.GetByWorkerAsync(workerId);
         return Ok(data);
     }
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateJobAssignmentDto dto)
+    {
+        var result = await _service.AssignAsync(dto);
+        return Ok(result);
+    }
+
 }

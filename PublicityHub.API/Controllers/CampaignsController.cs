@@ -45,5 +45,33 @@ public class CampaignsController : ControllerBase
         var proofs = await _service.GetProofsByCampaignAsync(campaignId);
         return Ok(proofs);
     }
+    [HttpPost("{id}/publish")]
+    public async Task<IActionResult> Publish(int id)
+    {
+        await _service.PublishAsync(id);
+        return Ok();
+    }
+
+    [HttpPost("{id}/start")]
+    public async Task<IActionResult> Start(int id)
+    {
+        await _service.StartExecutionAsync(id);
+        return Ok();
+    }
+
+    [HttpPost("{id}/complete")]
+    public async Task<IActionResult> Complete(int id)
+    {
+        await _service.CompleteAsync(id);
+        return Ok();
+    }
+
+    [HttpPost("{id}/close")]
+    public async Task<IActionResult> Close(int id)
+    {
+        await _service.CloseAsync(id);
+        return Ok();
+    }
+
 
 }

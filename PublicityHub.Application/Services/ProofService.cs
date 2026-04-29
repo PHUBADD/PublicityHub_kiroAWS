@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PublicityHub.Application.DTOs.Proofs;
+using PublicityHub.Application.Guards;
 using PublicityHub.Domain.Entities;
 using PublicityHub.Infrastructure.Data;
-using Microsoft.AspNetCore.Http;
-
+using PublicityHub.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 public class ProofService : IProofService
 {
     private readonly AppDbContext _context;
@@ -13,6 +14,12 @@ public class ProofService : IProofService
         _context = context;
     }
 
+    // =========================
+    // UPLOAD PROOF
+    // =========================
+    // Purpose:
+    // Worker/Admin uploads proof.
+    // Immediately moves to UnderReview.
     public async Task<ProofDto> UploadAsync(CreateProofDto dto)
     {
         var proof = new Proof
@@ -21,73 +28,81 @@ public class ProofService : IProofService
             ImageUrl = dto.ImageUrl,
             Latitude = dto.Latitude,
             Longitude = dto.Longitude,
-            Status = "pending",
-            UploadedAt = DateTime.UtcNow
+            UploadedAt = DateTime.UtcNow,
+            Status = ProofStatus.Uploaded
         };
+
+        ChangeStatus(proof, ProofStatus.UnderReview);
 
         _context.Proofs.Add(proof);
         await _context.SaveChangesAsync();
 
-        return new ProofDto
-        {
-            Id = proof.Id,
-            AssignmentId = proof.AssignmentId,
-            ImageUrl = proof.ImageUrl,
-            Status = proof.Status
-        };
+        return Map(proof);
     }
 
+    // =========================
+    // ADMIN APPROVE
+    // =========================
     public async Task<ProofDto> ApproveAsync(int id)
     {
-        var proof = await _context.Proofs.FindAsync(id);
-        if (proof == null) throw new Exception("Proof not found");
+        var proof = await _context.Proofs.FindAsync(id)
+            ?? throw new Exception("Proof not found");
 
-        proof.Status = "approved";
+        ChangeStatus(proof, ProofStatus.Approved);
         proof.ReviewedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-
-        return new ProofDto
-        {
-            Id = proof.Id,
-            AssignmentId = proof.AssignmentId,
-            ImageUrl = proof.ImageUrl,
-            Status = proof.Status
-        };
+        return Map(proof);
     }
 
+    // =========================
+    // ADMIN REJECT
+    // =========================
     public async Task<ProofDto> RejectAsync(int id)
     {
-        var proof = await _context.Proofs.FindAsync(id);
-        if (proof == null) throw new Exception("Proof not found");
+        var proof = await _context.Proofs.FindAsync(id)
+            ?? throw new Exception("Proof not found");
 
-        proof.Status = "rejected";
+        ChangeStatus(proof, ProofStatus.Rejected);
         proof.ReviewedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-
-        return new ProofDto
-        {
-            Id = proof.Id,
-            AssignmentId = proof.AssignmentId,
-            ImageUrl = proof.ImageUrl,
-            Status = proof.Status
-        };
+        return Map(proof);
     }
 
+    // =========================
+    // READ-ONLY: GET BY ASSIGNMENT
+    // =========================
+    // Purpose:
+    // Used to check if proof exists for assignment.
     public async Task<ProofDto?> GetByAssignmentAsync(int assignmentId)
     {
         var proof = await _context.Proofs
             .FirstOrDefaultAsync(x => x.AssignmentId == assignmentId);
 
-        if (proof == null) return null;
-
-        return new ProofDto
-        {
-            Id = proof.Id,
-            AssignmentId = proof.AssignmentId,
-            ImageUrl = proof.ImageUrl,
-            Status = proof.Status
-        };
+        return proof == null ? null : Map(proof);
     }
+
+    // =========================
+    // INTERNAL GUARDED TRANSITION
+    // =========================
+    private void ChangeStatus(Proof proof, ProofStatus newStatus)
+    {
+        if (!ProofStatusGuard.CanTransition(proof.Status, newStatus))
+        {
+            throw new InvalidOperationException(
+                $"Invalid proof transition: {proof.Status} → {newStatus}");
+        }
+
+        proof.Status = newStatus;
+    }
+
+    private static ProofDto Map(Proof p) =>
+        new()
+        {
+            Id = p.Id,
+            AssignmentId = p.AssignmentId,
+            ImageUrl = p.ImageUrl,
+            Status = p.Status.ToString()
+        };
 }

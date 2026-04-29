@@ -1,4 +1,5 @@
-﻿@model List<CampaignViewModel>
+﻿@using PublicityHub.Admin.Models
+@model List<CampaignViewModel>
 
 @{
     Layout = "_Layout";
@@ -12,66 +13,189 @@
 }
 else
 {
+
     <div class="campaign-grid">
         @foreach (var campaign in Model)
         {
-            <a href="/Proof/ByCampaign/@campaign.Id" style="text-decoration:none;">
-                <div class="campaign-card clickable">
+            <div class="campaign-card">
+                <div class="card-header">
                     <h3>@campaign.Title</h3>
-
-                    <p>
-                        <strong>Amount:</strong> ₹@campaign.Amount
-                    </p>
-                    <p>
-                        <strong>Created By:</strong> @campaign.CreatedByName
-                    </p>
-
-                    <p class="hint">Click to view proofs →</p>
+                    <span class="status-badge @campaign.Status.ToLower()">
+                        @campaign.Status
+                    </span>
                 </div>
-            </a>
+
+                <p><strong>Amount:</strong> ₹@campaign.Amount</p>
+                <p><strong>Created By:</strong> @campaign.CreatedByName</p>
+
+                <div class="card-actions">
+                    @if (campaign.Status == "Draft")
+                    {
+                        <button class="btn publish"
+                                onclick="publish(@campaign.Id)">
+                            Publish
+                        </button>
+                    }
+
+                    @if (campaign.Status == "Published")
+                    {
+                        <button class="btn start"
+                                onclick="start(@campaign.Id)">
+                            Start
+                        </button>
+                    }
+
+                    @if (campaign.Status == "Published")
+                    {
+                        <button class="btn assign"
+                                onclick="openAssignModal(@campaign.Id)">
+                            Assign Workers
+                        </button>
+                    }
+
+                    @if (campaign.Status == "InExecution")
+                    {
+                        <button class="btn complete"
+                                onclick="complete(@campaign.Id)">
+                            Complete
+                        </button>
+                    }
+
+                    @if (campaign.Status != "Completed" && campaign.Status != "Closed")
+                    {
+                        <button class="btn close"
+                                onclick="closeCampaign(@campaign.Id)">
+                            Close
+                        </button>
+                    }
+                </div>
+
+                <a class="proof-link"
+                   href="/Proof/ByCampaign/@campaign.Id">
+                    View proofs →
+                </a>
+            </div>
         }
     </div>
-}
 
+}
+<script>
+    function publish(id) {
+        fetch(`/api/Campaigns/${id}/publish`, { method: "POST" })
+            .then(() => location.reload());
+    }
+
+    function start(id) {
+        fetch(`/api/Campaigns/${id}/start`, { method: "POST" })
+            .then(() => location.reload());
+    }
+
+    function complete(id) {
+        fetch(`/api/Campaigns/${id}/complete`, { method: "POST" })
+            .then(() => location.reload());
+    }
+
+    function closeCampaign(id) {
+        fetch(`/api/Campaigns/${id}/close`, { method: "POST" })
+            .then(() => location.reload());
+    }
+</script>
 <style>
     .campaign-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 20px;
         margin-top: 20px;
     }
 
     .campaign-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 18px;
         box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
-        .campaign-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
-        }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        .campaign-card h3 {
-            margin-top: 0;
-            color: #1f2937;
-        }
-
-        .campaign-card p {
-            margin: 8px 0;
-            font-size: 14px;
-            color: #374151;
-        }
-
-    .hint {
-        margin-top: 10px;
+    .status-badge {
+        padding: 4px 10px;
         font-size: 12px;
-        color: #2563eb;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
     }
 
-    .clickable {
-        cursor: pointer;
+        .status-badge.draft {
+            background: #6b7280;
+        }
+
+        .status-badge.published {
+            background: #2563eb;
+        }
+
+        .status-badge.inexecution {
+            background: #ca8a04;
+        }
+
+        .status-badge.completed {
+            background: #15803d;
+        }
+
+        .status-badge.closed {
+            background: #b91c1c;
+        }
+
+    .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
     }
+
+    .btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+        .btn.publish {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn.start {
+            background: #ca8a04;
+            color: white;
+        }
+
+        .btn.complete {
+            background: #15803d;
+            color: white;
+        }
+
+        .btn.close {
+            background: #b91c1c;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+    .proof-link {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #2563eb;
+        text-decoration: none;
+    }
+
+    ``
 </style>

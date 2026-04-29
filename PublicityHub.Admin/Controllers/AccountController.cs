@@ -27,5 +27,9 @@ public class AccountController : Controller
         HttpContext.Session.Clear();
         return RedirectToAction("Login");
     }
-
+    public IActionResult SetLanguage(string lang)
+    {
+        HttpContext.Session.SetString("LANG", lang);
+        return Redirect(Request.Headers["Referer"].ToString());
+    }
 }

@@ -5,6 +5,8 @@
     public decimal Amount { get; set; }
     public string CreatedByName { get; set; } = string.Empty;
 
+    public string Status { get; set; } = string.Empty;
+
     public int TotalProofs { get; set; }
     public int PendingProofs { get; set; }
 
