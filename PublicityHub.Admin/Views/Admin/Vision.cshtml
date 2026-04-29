@@ -1,0 +1,354 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "PublicityHub – Business Vision";
+}
+
+<div class="vision-container">
+
+    <h1 class="vision-title">PublicityHub – Business Vision & Flow</h1>
+    <p class="vision-subtitle">
+        A daily reminder of <strong>why this platform exists</strong> and
+        <strong>how every role works together</strong>.
+    </p>
+
+    <!-- SECTION: BUSINESS OBJECTIVE -->
+    <section class="vision-section">
+        <h2>🎯 Core Business Objective</h2>
+        <blockquote>
+            PublicityHub is a trusted execution platform that connects
+            <strong>Business Owners</strong>,
+            <strong>Business Partners</strong>,
+            and <strong>Field Workers</strong>,
+            while the <strong>Platform (Admin)</strong> ensures trust, quality,
+            and fair outcomes.
+        </blockquote>
+    </section>
+
+    <!-- SECTION: ROLES -->
+    <section class="vision-section">
+        <h2>👥 Platform Roles</h2>
+
+        <div class="role-grid">
+
+            <div class="role-card">
+                <h3>🧑‍💼 Business Owner / Client</h3>
+                <ul>
+                    <li>Creates campaigns / orders</li>
+                    <li>Selects services (printing, distribution, etc.)</li>
+                    <li>Pays for outcome</li>
+                    <li><strong>Does NOT approve proofs</strong></li>
+                </ul>
+            </div>
+
+            <div class="role-card">
+                <h3>🏭 Business Partner (e.g. Printing Press)</h3>
+                <ul>
+                    <li>Provides production services</li>
+                    <li>Accepts orders</li>
+                    <li>Delivers printed/output items</li>
+                    <li>Uploads fulfillment proof</li>
+                </ul>
+            </div>
+
+            <div class="role-card">
+                <h3>🧑‍🔧 Worker (Field Executor)</h3>
+                <ul>
+                    <li>Executes physical work</li>
+                    <li>Pastes posters / installs / distributes</li>
+                    <li>Uploads field proof</li>
+                    <li><strong>Never approves own work</strong></li>
+                </ul>
+            </div>
+
+            <div class="role-card admin">
+                <h3>🧑‍⚖️ Admin (Platform Authority)</h3>
+                <ul>
+                    <li>Verifies proofs</li>
+                    <li>Approves / Rejects</li>
+                    <li>Protects trust on both sides</li>
+                    <li>Controls payouts & compliance</li>
+                </ul>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SECTION: FLOW -->
+    <section class="vision-section">
+        <h2>🔄 End‑to‑End Business Flow</h2>
+
+        <div class="flow-diagram">
+            <pre>
+Business Owner
+    |
+    v
+Selects Service & Creates Campaign
+    |
+    v
+Business Partner Produces Output
+(e.g. printing posters)
+    |
+    v
+Workers Execute in Field
+(pasting / distributing)
+    |
+    v
+Proof Uploaded
+    |
+    v
+Admin Verification
+(Approve / Reject)
+    |
+    v
+System Completion & Payment
+            </pre>
+        </div>
+    </section>
+
+    <!-- SECTION: WHY ADMIN APPROVES -->
+    <section class="vision-section">
+        <h2>✅ Why Admin Approves Proofs</h2>
+
+        <div class="explanation">
+            <p>
+                Admin is <strong>not the campaign owner</strong>.
+                Admin represents the <strong>platform’s trust system</strong>.
+            </p>
+
+            <ul>
+                <li>Business owners should not micromanage proofs</li>
+                <li>Workers should not validate their own work</li>
+                <li>Admin ensures fairness, scalability, and quality</li>
+            </ul>
+
+            <p class="highlight">
+                ✅ Admin approval enables automation, payments, and fraud control.
+            </p>
+        </div>
+    </section>
+
+    <!-- SECTION: GENERIC APPLICABILITY -->
+    <section class="vision-section">
+        <h2>🌍 Works for All Business Models</h2>
+
+        <p>This same model supports:</p>
+
+        <div class="pill-grid">
+            <span>Poster & Flyer Distribution</span>
+            <span>Banner Installation</span>
+            <span>Local Deliveries</span>
+            <span>Inspections & Surveys</span>
+            <span>Repairs & Installations</span>
+        </div>
+    </section>
+
+    <!-- SECTION: DAILY REMINDER -->
+    <section class="vision-section reminder">
+        <h2>🧠 Daily Admin Reminder</h2>
+        <p>
+            You are building a <strong>trust platform</strong>, not just an app.
+            Every approval, rejection, and rule protects the ecosystem.
+        </p>
+        <p class="quote">
+            “Clarity in business logic today prevents chaos in production tomorrow.”
+        </p>
+    </section>
+
+
+
+    <section class="vision-hero">
+        <div class="hero-overlay">
+            <div class="hero-message">
+                <h2>Built for the People on the Ground</h2>
+                <p>
+                    Every feature you build empowers real workers who execute
+                    real work in real streets. This platform exists to give
+                    dignity, fairness, and opportunity to the field workforce.
+                </p>
+            </div>
+        </div>
+    </section>
+
+
+</div>
+
+<style>
+    .vision-hero {
+        margin: 40px 0 20px;
+        border-radius: 20px;
+        padding: 28px 30px;
+        background: linear-gradient( 180deg, #eefdf6, #dcfce7 );
+        box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+    }
+
+    .hero-overlay {
+        padding: 0;
+    }
+
+    .hero-message {
+        max-width: 800px;
+    }
+
+        .hero-message h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #065f46;
+        }
+
+        .hero-message p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #064e3b;
+        }
+    body {
+        background: linear-gradient(180deg, #f7fafc 0%, #eef2f7 100%);
+    }
+
+    .vision-container {
+        max-width: 1050px;
+        margin: auto;
+        padding: 40px 24px;
+        font-family: "Segoe UI", "Inter", system-ui, sans-serif;
+    }
+
+    .vision-title {
+        font-size: 34px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+    }
+
+    .vision-subtitle {
+        color: #475569;
+        font-size: 16px;
+        margin-bottom: 48px;
+        max-width: 680px;
+    }
+
+    .vision-section {
+        margin-bottom: 56px;
+    }
+
+        .vision-section h2 {
+            font-size: 22px;
+            color: #111827;
+            margin-bottom: 18px;
+        }
+
+    blockquote {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 22px 26px;
+        font-size: 16px;
+        line-height: 1.7;
+        color: #1e293b;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+        border-left: 4px solid #2563eb;
+    }
+
+    .role-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 26px;
+    }
+
+    .role-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(6px);
+        border-radius: 18px;
+        padding: 22px 24px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .role-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+        }
+
+        .role-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+
+        .role-card ul {
+            padding-left: 16px;
+            color: #334155;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .role-card.admin {
+            border: 1px solid #2563eb;
+            background: linear-gradient(180deg, #ffffff, #f0f7ff);
+        }
+
+    .flow-diagram pre {
+        background: linear-gradient(180deg, #0f172a, #020617);
+        color: #e5e7eb;
+        padding: 30px;
+        border-radius: 20px;
+        font-size: 14px;
+        line-height: 1.6;
+        box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+    }
+
+    .explanation {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 26px 28px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        font-size: 15px;
+        color: #334155;
+    }
+
+        .explanation ul {
+            margin-top: 14px;
+            margin-left: 18px;
+            line-height: 1.7;
+        }
+
+    .highlight {
+        margin-top: 14px;
+        color: #166534;
+        font-weight: 600;
+    }
+
+    .pill-grid span {
+        display: inline-block;
+        margin: 6px 10px 6px 0;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #e0e7ff, #eef2ff);
+        font-size: 13px;
+        color: #1e3a8a;
+    }
+
+    .reminder {
+        background: linear-gradient(180deg, #fefce8, #fef9c3);
+        border-radius: 20px;
+        padding: 28px 30px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+        .reminder h2 {
+            margin-bottom: 12px;
+        }
+
+        .reminder p {
+            font-size: 15px;
+            color: #3f3f46;
+            line-height: 1.7;
+        }
+
+    .quote {
+        margin-top: 14px;
+        font-style: italic;
+        color: #52525b;
+    }
+
+</style>
