@@ -76,6 +76,13 @@ public class AppDbContext : DbContext
                   .WithMany(u => u.Campaigns)
                   .HasForeignKey(e => e.CreatedBy)
                   .OnDelete(DeleteBehavior.Cascade);
+            //Audit
+            entity.Property(e => e.ClosedReason)
+                   .HasColumnName("closed_reason");
+
+            entity.Property(e => e.ClosedBy)
+                  .HasColumnName("closed_by");
+
         });
 
         // =========================

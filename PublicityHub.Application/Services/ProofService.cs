@@ -40,42 +40,57 @@ public class ProofService : IProofService
         return Map(proof);
     }
 
-    // =========================
-    // ADMIN APPROVE
-    // =========================
-    public async Task<ProofDto> ApproveAsync(int id)
+
+    /// <summary>
+    /// Admin approves a proof.
+    /// Business Meaning:
+    /// - Proof is valid
+    /// - Assignment is approved
+    /// </summary>
+    public async Task ApproveAsync(int proofId)
     {
-        var proof = await _context.Proofs.FindAsync(id)
+        var proof = await _context.Proofs
+            .Include(p => p.JobAssignment)
+            .FirstOrDefaultAsync(p => p.Id == proofId)
             ?? throw new Exception("Proof not found");
 
-        ChangeStatus(proof, ProofStatus.Approved);
+        proof.Status = ProofStatus.Approved;
         proof.ReviewedAt = DateTime.UtcNow;
 
+        proof.JobAssignment.Status = AssignmentStatus.Approved;
+
         await _context.SaveChangesAsync();
-        return Map(proof);
     }
 
-    // =========================
-    // ADMIN REJECT
-    // =========================
-    public async Task<ProofDto> RejectAsync(int id)
+    /// <summary>
+    /// Admin rejects a proof.
+    /// Business Meaning:
+    /// - Proof is invalid
+    /// - Assignment must be reassigned
+    /// </summary>
+    public async Task RejectAsync(int proofId)
     {
-        var proof = await _context.Proofs.FindAsync(id)
+        var proof = await _context.Proofs
+            .Include(p => p.JobAssignment)
+            .FirstOrDefaultAsync(p => p.Id == proofId)
             ?? throw new Exception("Proof not found");
 
-        ChangeStatus(proof, ProofStatus.Rejected);
+        proof.Status = ProofStatus.Rejected;
         proof.ReviewedAt = DateTime.UtcNow;
 
+        proof.JobAssignment.Status = AssignmentStatus.Reassigned;
+
         await _context.SaveChangesAsync();
-        return Map(proof);
     }
 
-    // =========================
-    // READ-ONLY: GET BY ASSIGNMENT
-    // =========================
-    // Purpose:
-    // Used to check if proof exists for assignment.
-    public async Task<ProofDto?> GetByAssignmentAsync(int assignmentId)
+
+
+// =========================
+// READ-ONLY: GET BY ASSIGNMENT
+// =========================
+// Purpose:
+// Used to check if proof exists for assignment.
+public async Task<ProofDto?> GetByAssignmentAsync(int assignmentId)
     {
         var proof = await _context.Proofs
             .FirstOrDefaultAsync(x => x.AssignmentId == assignmentId);
@@ -86,7 +101,7 @@ public class ProofService : IProofService
     // =========================
     // INTERNAL GUARDED TRANSITION
     // =========================
-    private void ChangeStatus(Proof proof, ProofStatus newStatus)
+    public void ChangeStatus(Proof proof, ProofStatus newStatus)
     {
         if (!ProofStatusGuard.CanTransition(proof.Status, newStatus))
         {

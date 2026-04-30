@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PublicityHub.Application.DTOs.Campaigns;
 using PublicityHub.Application.Services;
+using PublicityHub.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 
 namespace PublicityHub.API.Controllers;
 
@@ -66,12 +68,20 @@ public class CampaignsController : ControllerBase
         return Ok();
     }
 
+
+    //audit
     [HttpPost("{id}/close")]
-    public async Task<IActionResult> Close(int id)
+    public async Task<IActionResult> Close(int id,[FromBody] CloseCampaignDto dto)
     {
-        await _service.CloseAsync(id);
+        await _service.CloseAsync(id, dto.ClosedBy, dto.Reason);
         return Ok();
     }
 
+    [HttpGet("{id}/can-complete")]
+    public async Task<IActionResult> CanComplete(int id)
+    {
+        var canComplete = await _service.CanCompleteCampaignAsync(id);
+        return Ok(new { canComplete });
+    }
 
 }

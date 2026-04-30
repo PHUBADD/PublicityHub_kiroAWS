@@ -1,11 +1,12 @@
-﻿@model List<ProofViewModel>
+﻿@using PublicityHub.Admin.Models
+@model List<ProofViewModel>
 
 @{
     Layout = "_Layout";
 }
 
 <h2 class="page-title">
-    Proofs for Campaign @ViewBag.CampaignId
+    Proof Review – Campaign @ViewBag.CampaignId
 </h2>
 
 @if (!Model.Any())
@@ -21,36 +22,49 @@ else
         {
             <div class="proof-card">
 
+                <!-- Proof Image -->
                 <div class="proof-image">
                     <img src="@proof.ImageUrl" alt="Proof image" />
                 </div>
 
+                <!-- Proof Info -->
                 <div class="proof-info">
-                    <span class="status @proof.Status.ToLower()">
+                    <span class="status-badge @proof.Status.ToLower()">
                         @proof.Status
                     </span>
                 </div>
 
-                <div class="proof-actions">
-                    <form method="post" action="/Proof/Approve">
-                        <input type="hidden" name="id" value="@proof.Id" />
-                        <button type="submit" class="btn approve">
+                <!-- Admin Actions -->
+                @if (proof.Status == "UnderReview")
+                {
+                    <div class="proof-actions">
+                        <button class="btn approve"
+                                onclick="approve(@proof.Id)">
                             ✓ Approve
                         </button>
-                    </form>
 
-                    <form method="post" action="/Proof/Reject">
-                        <input type="hidden" name="id" value="@proof.Id" />
-                        <button type="submit" class="btn reject">
+                        <button class="btn reject"
+                                onclick="reject(@proof.Id)">
                             ✕ Reject
                         </button>
-                    </form>
-                </div>
-
+                    </div>
+                }
             </div>
         }
     </div>
 }
+
+<script>
+    function approve(id) {
+        fetch(`/api/Proofs/${id}/approve`, { method: "POST" })
+            .then(() => location.reload());
+    }
+
+    function reject(id) {
+        fetch(`/api/Proofs/${id}/reject`, { method: "POST" })
+            .then(() => location.reload());
+    }
+</script>
 
 <style>
     .page-title {
@@ -71,7 +85,7 @@ else
     }
 
     .proof-card {
-        background: white;
+        background: #ffffff;
         border-radius: 12px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         padding: 15px;
@@ -99,7 +113,7 @@ else
         justify-content: flex-start;
     }
 
-    .status {
+    .status-badge {
         padding: 4px 10px;
         font-size: 12px;
         font-weight: 600;
@@ -107,17 +121,18 @@ else
         text-transform: uppercase;
     }
 
-        .status.pending {
+        .status-badge.uploaded,
+        .status-badge.underreview {
             background: #fef3c7;
             color: #92400e;
         }
 
-        .status.approved {
+        .status-badge.approved {
             background: #dcfce7;
             color: #166534;
         }
 
-        .status.rejected {
+        .status-badge.rejected {
             background: #fee2e2;
             color: #991b1b;
         }
@@ -125,14 +140,11 @@ else
     .proof-actions {
         display: flex;
         gap: 10px;
+        margin-top: 8px;
     }
 
-        .proof-actions form {
-            flex: 1;
-        }
-
     .btn {
-        width: 100%;
+        flex: 1;
         padding: 10px;
         font-size: 14px;
         border-radius: 6px;

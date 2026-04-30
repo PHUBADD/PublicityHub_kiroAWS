@@ -3,7 +3,9 @@
 public interface IProofService
 {
     Task<ProofDto> UploadAsync(CreateProofDto dto);
-    Task<ProofDto> ApproveAsync(int proofId);
-    Task<ProofDto> RejectAsync(int proofId);
+
+    Task ApproveAsync(int proofId);
+    Task RejectAsync(int proofId);
+
     Task<ProofDto?> GetByAssignmentAsync(int assignmentId);
 }

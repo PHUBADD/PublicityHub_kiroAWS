@@ -26,15 +26,15 @@ public class ProofsController : ControllerBase
     [HttpPost("{id}/approve")]
     public async Task<IActionResult> Approve(int id)
     {
-        var result = await _service.ApproveAsync(id);
-        return Ok(result);
+        await _service.ApproveAsync(id);
+        return Ok();
     }
 
     [HttpPost("{id}/reject")]
     public async Task<IActionResult> Reject(int id)
     {
-        var result = await _service.RejectAsync(id);
-        return Ok(result);
+        await _service.RejectAsync(id);
+        return Ok();
     }
 
     [HttpGet("assignment/{assignmentId}")]

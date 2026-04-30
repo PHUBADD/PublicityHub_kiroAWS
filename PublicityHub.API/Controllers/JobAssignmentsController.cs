@@ -22,15 +22,15 @@ public class JobAssignmentsController : ControllerBase
     [HttpPost("{id}/accept")]
     public async Task<IActionResult> Accept(int id)
     {
-        var result = await _service.AcceptAsync(id);
-        return Ok(result);
+        await _service.AcceptAsync(id);
+        return Ok();
     }
 
     [HttpPost("{id}/complete")]
     public async Task<IActionResult> Complete(int id)
     {
-        var result = await _service.CompleteAsync(id);
-        return Ok(result);
+        await _service.CompleteAsync(id);
+        return Ok();
     }
 
     [HttpPost("{id}/reject")]
@@ -49,8 +49,17 @@ public class JobAssignmentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateJobAssignmentDto dto)
     {
-        var result = await _service.AssignAsync(dto);
-        return Ok(result);
+
+        try
+        {
+            var result = await _service.AssignAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.InnerException?.Message ?? ex.Message);
+        }
+
     }
 
 }

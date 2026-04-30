@@ -7,6 +7,10 @@
 
 <h2>Campaign Overview</h2>
 
+<a href="/Campaign/Create" class="btn primary">
+    ➕ Create Campaign
+</a>
+
 @if (!Model.Any())
 {
     <p>No campaigns found.</p>
@@ -29,6 +33,12 @@ else
                 <p><strong>Created By:</strong> @campaign.CreatedByName</p>
 
                 <div class="card-actions">
+                    @if (campaign.AssignedCount > 0)
+                    {
+                        <span class="badge success">
+                            👷 @campaign.AssignedCount Worker(s) Assigned
+                        </span>
+                    }
                     @if (campaign.Status == "Draft")
                     {
                         <button class="btn publish"
@@ -36,6 +46,7 @@ else
                             Publish
                         </button>
                     }
+                   
 
                     @if (campaign.Status == "Published")
                     {
@@ -74,6 +85,20 @@ else
                    href="/Proof/ByCampaign/@campaign.Id">
                     View proofs →
                 </a>
+                @if (campaign.Status == "Published" || campaign.Status == "InExecution")
+                {
+                    <a href="/JobAssignment/Assign/@campaign.Id"
+                       class="btn assign">
+                        👷 Assign Worker
+                    </a>
+                }
+                else
+                {
+                    <span class="btn disabled">
+                        👷 Assign Worker
+                    </span>
+                }
+
             </div>
         }
     </div>

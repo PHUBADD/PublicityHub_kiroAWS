@@ -10,4 +10,7 @@
     public int TotalProofs { get; set; }
     public int PendingProofs { get; set; }
 
+    public int AssignedCount { get; set; }
+
+
 }

@@ -21,56 +21,57 @@ public class JobAssignmentService : IJobAssignmentService
     // Guard ensures lifecycle integrity.
     public async Task<JobAssignmentDto> AssignAsync(CreateJobAssignmentDto dto)
     {
-        var exists = await _context.JobAssignments
-            .AnyAsync(x => x.CampaignId == dto.CampaignId &&
-                           x.WorkerId == dto.WorkerId);
-
-        if (exists)
-            throw new Exception("Job already assigned to this worker");
-
-        var entity = new JobAssignment
+        var assignment = new JobAssignment
         {
             CampaignId = dto.CampaignId,
             WorkerId = dto.WorkerId,
             Status = AssignmentStatus.Created
         };
 
-        ChangeStatus(entity, AssignmentStatus.Available);
+        //  Move immediately to Available
+        ChangeStatus(assignment, AssignmentStatus.Available);
 
-        _context.JobAssignments.Add(entity);
+        _context.JobAssignments.Add(assignment);
         await _context.SaveChangesAsync();
 
-        return Map(entity);
+        return Map(assignment);
     }
+
 
     // =========================
     // WORKER ACCEPTS JOB
     // =========================
-    public async Task<JobAssignmentDto> AcceptAsync(int jobId)
+    /// <summary>
+    /// Worker accepts an available assignment.
+    /// Allowed: Available → Accepted
+    /// </summary>
+    public async Task AcceptAsync(int assignmentId)
     {
-        var job = await _context.JobAssignments.FindAsync(jobId)
-            ?? throw new Exception("Job not found");
+        var assignment = await _context.JobAssignments.FindAsync(assignmentId)
+            ?? throw new Exception("Assignment not found");
 
-        ChangeStatus(job, AssignmentStatus.Accepted);
-        job.AcceptedAt = DateTime.UtcNow;
+        //  Guard enforced here
+        ChangeStatus(assignment, AssignmentStatus.Accepted);
 
+        assignment.AcceptedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        return Map(job);
     }
 
-    // =========================
-    // WORKER COMPLETES JOB
-    // =========================
-    public async Task<JobAssignmentDto> CompleteAsync(int jobId)
+    /// <summary>
+    /// Worker completes assigned work.
+    /// Allowed: Accepted → InProgress → ProofSubmitted
+    /// </summary>
+    public async Task CompleteAsync(int assignmentId)
     {
-        var job = await _context.JobAssignments.FindAsync(jobId)
-            ?? throw new Exception("Job not found");
+        var assignment = await _context.JobAssignments.FindAsync(assignmentId)
+            ?? throw new Exception("Assignment not found");
 
-        ChangeStatus(job, AssignmentStatus.InProgress);
-        ChangeStatus(job, AssignmentStatus.ProofSubmitted);
+        ChangeStatus(assignment, AssignmentStatus.InProgress);
+        ChangeStatus(assignment, AssignmentStatus.ProofSubmitted);
+
+        assignment.CompletedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        return Map(job);
     }
 
     // =========================
@@ -135,9 +136,9 @@ public class JobAssignmentService : IJobAssignmentService
     private static JobAssignmentDto Map(JobAssignment j) =>
         new()
         {
-            Id = j.Id,
+            AssignmentId = j.Id,
             CampaignId = j.CampaignId,
             WorkerId = j.WorkerId,
-            Status = j.Status
+            Status = j.Status.ToString()
         };
 }

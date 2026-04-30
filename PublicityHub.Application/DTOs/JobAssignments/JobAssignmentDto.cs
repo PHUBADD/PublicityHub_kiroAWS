@@ -8,9 +8,9 @@ namespace PublicityHub.Application.DTOs.JobAssignments
 {
     public class JobAssignmentDto
     {
-        public int Id { get; set; }
+        public int AssignmentId { get; set; }
         public int CampaignId { get; set; }
         public int WorkerId { get; set; }
-        public AssignmentStatus Status { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 }

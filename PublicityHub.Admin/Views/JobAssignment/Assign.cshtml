@@ -1,0 +1,105 @@
+﻿@model PublicityHub.Admin.Models.CreateJobAssignmentViewModel
+
+@{
+    Layout = "_Layout";
+}
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="error-box">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>⚠️ @error.ErrorMessage</p>
+        }
+    </div>
+}
+<div class="assign-container">
+    <div class="assign-card">
+        <h2>👷 Assign Worker</h2>
+        <p class="subtitle">
+            Assign a worker to this campaign
+        </p>
+
+        <form method="post">
+            <!-- ✅ THIS IS THE KEY FIX -->
+            <input type="hidden" asp-for="CampaignId" />
+
+            <div class="form-group">
+                <label>Worker ID</label>
+                <input name="WorkerId"
+                       placeholder="Enter worker id"
+                       required />
+            </div>
+
+            <button type="submit" class="btn-assign">
+                ✅ Assign Worker
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<style>
+    .error-box {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+
+    .assign-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 40px;
+    }
+
+    .assign-card {
+        width: 100%;
+        max-width: 400px;
+        background: linear-gradient(135deg, #ffffff, #f3f4f6);
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.12);
+    }
+
+        .assign-card h2 {
+            margin-bottom: 8px;
+        }
+
+    .subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+        }
+
+    .btn-assign {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>

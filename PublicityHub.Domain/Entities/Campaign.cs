@@ -21,4 +21,7 @@ public class Campaign
 
     public ICollection<JobAssignment> JobAssignments { get; set; }
         = new List<JobAssignment>();
+    //Audit
+    public string? ClosedReason { get; set; }
+    public int? ClosedBy { get; set; }
 }

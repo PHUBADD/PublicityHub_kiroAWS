@@ -1,0 +1,185 @@
+﻿@using PublicityHub.Admin.Models
+@model List<WorkerAssignmentViewModel>
+
+@{
+    Layout = "_Layout";
+}
+
+<h2 class="page-title">My Jobs</h2>
+
+@if (!Model.Any())
+{
+    <p class="empty-text">No jobs assigned yet.</p>
+}
+else
+{
+    <div class="worker-grid">
+        @foreach (var job in Model)
+        {
+            <div class="worker-card">
+                <h3>@job.CampaignTitle</h3>
+
+                <span class="status-badge @job.Status.ToLower()">
+                    @job.Status
+                </span>
+
+                <div class="actions">
+                    @if (job.Status == "Available")
+                    {
+
+                        <button class="btn primary"
+                                onclick="accept(@job.AssignmentId, this)">
+                            Accept
+                        </button>
+
+                    }
+                    else if (job.Status == "Accepted")
+                    {
+
+                        <button class="btn success"
+                                onclick="complete(@job.AssignmentId, this)">
+                            Complete
+                        </button>
+
+                    }
+                    else if (job.Status == "ProofSubmitted")
+                    {
+
+                        <button class="btn primary"
+                                onclick="uploadProof(@job.AssignmentId)">
+                            Upload Proof
+                        </button>
+
+                    }
+
+                    else if (job.Status == "Approved")
+                    {
+
+                        <span class="hint success-text">
+                            Job approved ✅
+                        </span>
+
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+
+<script>
+function disableButton(btn) {
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+    btn.style.opacity = "0.6";
+}
+
+function accept(id, btn) {
+    disableButton(btn);
+
+    fetch(`https://localhost:7166/api/jobassignments/${id}/accept`, {
+        method: "POST"
+    }).then(() => {
+        showToast("✅ Job accepted successfully");
+        setTimeout(() => location.reload(), 800);
+    });
+}
+
+function complete(id, btn) {
+    disableButton(btn);
+
+    fetch(`https://localhost:7166/api/jobassignments/${id}/complete`, {
+        method: "POST"
+    }).then(() => {
+        location.href = `/Worker/UploadProof/${id}`;
+    });
+}
+
+function uploadProof(id) {
+    location.href = `/Worker/UploadProof/${id}`;
+}
+</script>
+
+
+<style>
+    .page-title {
+        margin-bottom: 20px;
+    }
+
+    .empty-text {
+        color: #6b7280;
+    }
+
+    .worker-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+    }
+
+    .worker-card {
+        background: #fff;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .status-badge {
+        display: inline-block;
+        margin: 8px 0;
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 999px;
+        text-transform: uppercase;
+    }
+
+        .status-badge.available {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .status-badge.accepted {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.proofsubmitted {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .status-badge.approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+    .actions {
+        margin-top: 10px;
+    }
+
+    .btn {
+        padding: 8px 14px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+        .btn.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn.success {
+            background: #16a34a;
+            color: white;
+        }
+
+    .hint {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .success-text {
+        color: #16a34a;
+        font-weight: 600;
+    }
+</style>
