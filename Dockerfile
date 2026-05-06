@@ -6,7 +6,6 @@ COPY . .
 
 RUN dotnet restore
 
-# ✅ FIX: use correct relative path
 WORKDIR /src/PublicityHub.Admin
 RUN dotnet publish -c Release -o /app
 
