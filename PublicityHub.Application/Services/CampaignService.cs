@@ -35,6 +35,7 @@ public class CampaignService : ICampaignService
     {
         var campaigns = await _context.Campaigns
             .Include(c => c.CreatedByUser)
+            .Include(c => c.JobAssignments)
             .ToListAsync();
 
         return campaigns.Select(c => new CampaignDto
@@ -43,7 +44,8 @@ public class CampaignService : ICampaignService
             Title = c.Title,
             Amount = c.Amount,
             CreatedByName = c.CreatedByUser.FullName,
-            Status = c.Status
+            Status = c.Status,
+            AssignedCount = c.JobAssignments.Count
         }).ToList();
     }
 

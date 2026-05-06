@@ -12,5 +12,10 @@ namespace PublicityHub.Application.DTOs.JobAssignments
         public int CampaignId { get; set; }
         public int WorkerId { get; set; }
         public string Status { get; set; } = string.Empty;
+
+        public string CampaignTitle { get; set; }
+        public decimal Amount { get; set; }
+        public string Location { get; set; }
+
     }
 }

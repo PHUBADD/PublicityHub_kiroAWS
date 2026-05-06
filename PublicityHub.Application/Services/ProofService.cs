@@ -7,12 +7,20 @@ using PublicityHub.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 public class ProofService : IProofService
 {
+    
+    private readonly ICampaignService _campaignService;
     private readonly AppDbContext _context;
 
-    public ProofService(AppDbContext context)
+
+    public ProofService(
+        AppDbContext context,
+        ICampaignService campaignService)
     {
         _context = context;
+        _campaignService = campaignService;
     }
+
+
 
     // =========================
     // UPLOAD PROOF
@@ -51,15 +59,28 @@ public class ProofService : IProofService
     {
         var proof = await _context.Proofs
             .Include(p => p.JobAssignment)
+            .ThenInclude(a => a.Campaign)
             .FirstOrDefaultAsync(p => p.Id == proofId)
             ?? throw new Exception("Proof not found");
 
+        // ✅ Approve proof
         proof.Status = ProofStatus.Approved;
         proof.ReviewedAt = DateTime.UtcNow;
 
+        // ✅ Approve assignment
         proof.JobAssignment.Status = AssignmentStatus.Approved;
 
         await _context.SaveChangesAsync();
+
+        // ✅ Auto-complete campaign if all assignments approved
+        var campaign = proof.JobAssignment.Campaign;
+
+        if (await _campaignService.CanCompleteCampaignAsync(campaign.Id))
+        {
+            campaign.Status = CampaignStatus.Completed;
+            campaign.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
     }
 
     /// <summary>
@@ -75,22 +96,26 @@ public class ProofService : IProofService
             .FirstOrDefaultAsync(p => p.Id == proofId)
             ?? throw new Exception("Proof not found");
 
+        // Reject proof
         proof.Status = ProofStatus.Rejected;
-        proof.ReviewedAt = DateTime.UtcNow;
 
-        proof.JobAssignment.Status = AssignmentStatus.Reassigned;
+        // ✅ Force assignment reset
+        var assignment = proof.JobAssignment;
+        assignment.Status = AssignmentStatus.Accepted;
+
+        _context.JobAssignments.Update(assignment);   // ✅ THIS IS THE KEY LINE
 
         await _context.SaveChangesAsync();
     }
 
 
 
-// =========================
-// READ-ONLY: GET BY ASSIGNMENT
-// =========================
-// Purpose:
-// Used to check if proof exists for assignment.
-public async Task<ProofDto?> GetByAssignmentAsync(int assignmentId)
+    // =========================
+    // READ-ONLY: GET BY ASSIGNMENT
+    // =========================
+    // Purpose:
+    // Used to check if proof exists for assignment.
+    public async Task<ProofDto?> GetByAssignmentAsync(int assignmentId)
     {
         var proof = await _context.Proofs
             .FirstOrDefaultAsync(x => x.AssignmentId == assignmentId);

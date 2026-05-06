@@ -8,6 +8,7 @@ public class CampaignDto
     public string Title { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string CreatedByName { get; set; } = string.Empty;
+    public int AssignedCount { get; set; }
     public CampaignStatus Status { get; set; }
 
 }

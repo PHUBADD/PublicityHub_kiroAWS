@@ -25,11 +25,8 @@ public class JobAssignmentService : IJobAssignmentService
         {
             CampaignId = dto.CampaignId,
             WorkerId = dto.WorkerId,
-            Status = AssignmentStatus.Created
+            Status = AssignmentStatus.Available   // ✅ initial state
         };
-
-        //  Move immediately to Available
-        ChangeStatus(assignment, AssignmentStatus.Available);
 
         _context.JobAssignments.Add(assignment);
         await _context.SaveChangesAsync();
@@ -98,9 +95,7 @@ public class JobAssignmentService : IJobAssignmentService
 
     public async Task<List<JobAssignmentDto>> GetByWorkerAsync(int workerId)
     {
-        var jobs = await _context.JobAssignments
-            .Where(x => x.WorkerId == workerId)
-            .ToListAsync();
+        var jobs = await _context.JobAssignments.Include(x => x.Campaign).Where(x => x.WorkerId == workerId).ToListAsync();
 
         return jobs.Select(Map).ToList();
     }
@@ -139,6 +134,10 @@ public class JobAssignmentService : IJobAssignmentService
             AssignmentId = j.Id,
             CampaignId = j.CampaignId,
             WorkerId = j.WorkerId,
-            Status = j.Status.ToString()
+            Status = j.Status.ToString(),
+            CampaignTitle = j.Campaign?.Title,
+            Amount = j.Campaign?.Amount ?? 0,
+            Location = j.Campaign?.Location
+
         };
 }

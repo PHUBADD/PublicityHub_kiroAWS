@@ -23,11 +23,34 @@ public class UserService : IUserService
                 Id = u.Id,
                 FullName = u.FullName,
                 PhoneNumber = u.PhoneNumber,
-                Role = u.Role
+                Role = u.Role.ToLower().Trim()
+
             })
             .ToListAsync();
     }
+    public async Task<LoginResponseDto> LoginWithUserAsync(LoginDto dto)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(x =>
+                x.PhoneNumber == dto.PhoneNumber.Trim().ToLower());
 
+        if (user == null)
+            throw new Exception("User not found");
+
+        var token = _jwtService.GenerateToken(user.Id, user.Role);
+
+        return new LoginResponseDto
+        {
+            Token = token,
+            User = new UserDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role
+            }
+        };
+    }
     public async Task<UserDto> CreateAsync(CreateUserDto dto)
     {
         var allowedRoles = new[] { "admin", "worker", "provider" };
@@ -42,7 +65,7 @@ public class UserService : IUserService
         var user = new User
         {
             FullName = dto.FullName,
-            PhoneNumber = dto.PhoneNumber,
+            PhoneNumber = dto.PhoneNumber.ToLower().Trim(),
             Role = role,
             CreatedAt = DateTime.UtcNow
         };
@@ -54,19 +77,27 @@ public class UserService : IUserService
         {
             Id = user.Id,
             FullName = user.FullName,
-            PhoneNumber = user.PhoneNumber,
+            PhoneNumber = user.PhoneNumber.ToLower().Trim(),
             Role = user.Role
         };
     }
 
+
     public async Task<string> LoginAsync(LoginDto dto)
     {
+
+        var input = dto.PhoneNumber.Replace(" ", "").Trim();
+
         var user = await _context.Users
-            .FirstOrDefaultAsync(x => x.PhoneNumber == dto.PhoneNumber);
+            .FirstOrDefaultAsync(x =>
+                x.PhoneNumber.Replace(" ", "").Trim() == input
+            );
+
 
         if (user == null)
             throw new Exception("User not found");
 
         return _jwtService.GenerateToken(user.Id, user.Role);
     }
+
 }

@@ -9,99 +9,172 @@
 
 @if (!Model.Any())
 {
-    <p class="empty-text">No jobs assigned yet.</p>
+    <div class="empty-state">
+        <h3>No jobs assigned yet</h3>
+        <p>🕒 Please wait. New tasks will appear here soon.</p>
+    </div>
 }
 else
 {
     <div class="worker-grid">
+
         @foreach (var job in Model)
         {
             <div class="worker-card">
+
                 <h3>@job.CampaignTitle</h3>
 
+                <p>💰 Payment: ₹@job.Amount</p>
+                <p>📍 Location: @job.Location</p>
+
+                <!-- ✅ Status -->
                 <span class="status-badge @job.Status.ToLower()">
                     @job.Status
                 </span>
 
+                <!-- ✅ Progress -->
+                <div class="progress-bar">
+                    <div class="step @(job.Status == "Available" ? "active" : "")">Assigned</div>
+                    <div class="step @(job.Status == "Accepted" ? "active" : "")">Accepted</div>
+                    <div class="step @(job.Status == "ProofSubmitted" ? "active" : "")">Submitted</div>
+                    <div class="step @(job.Status == "Approved" ? "active" : "")">Approved</div>
+                </div>
+
+                <!-- ✅ Actions -->
                 <div class="actions">
+
                     @if (job.Status == "Available")
                     {
+                        <p class="hint">👉 Accept this job to begin work</p>
 
                         <button class="btn primary"
                                 onclick="accept(@job.AssignmentId, this)">
-                            Accept
+                            Accept Job
                         </button>
-
                     }
                     else if (job.Status == "Accepted")
                     {
+                        <p class="hint">✅ Complete the job and upload proof</p>
 
                         <button class="btn success"
                                 onclick="complete(@job.AssignmentId, this)">
-                            Complete
+                            Mark as Completed
                         </button>
-
                     }
                     else if (job.Status == "ProofSubmitted")
                     {
+                        <p class="hint">📤 Proof submitted. Waiting for approval</p>
 
-                        <button class="btn primary"
-                                onclick="uploadProof(@job.AssignmentId)">
-                            Upload Proof
-                        </button>
-
+                        <span class="success-text">Submitted ✅</span>
                     }
-
                     else if (job.Status == "Approved")
                     {
+                        <p class="hint">🎉 Job approved. Great work!</p>
 
-                        <span class="hint success-text">
-                            Job approved ✅
-                        </span>
-
+                        <span class="success-text">Approved ✅</span>
                     }
+
                 </div>
+
             </div>
         }
-    </div>
-}
 
+    </div>
+
+    <div id="toast" class="toast"></div>
+}
 
 <script>
-function disableButton(btn) {
-    btn.disabled = true;
-    btn.innerText = "Processing...";
-    btn.style.opacity = "0.6";
-}
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.classList.add("show");
 
-function accept(id, btn) {
-    disableButton(btn);
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2500);
+    }
 
-    fetch(`https://localhost:7166/api/jobassignments/${id}/accept`, {
-        method: "POST"
-    }).then(() => {
-        showToast("✅ Job accepted successfully");
-        setTimeout(() => location.reload(), 800);
-    });
-}
+    function disableButton(btn) {
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+        btn.style.opacity = "0.6";
+    }
 
-function complete(id, btn) {
-    disableButton(btn);
+    function accept(id, btn) {
+        disableButton(btn);
 
-    fetch(`https://localhost:7166/api/jobassignments/${id}/complete`, {
-        method: "POST"
-    }).then(() => {
-        location.href = `/Worker/UploadProof/${id}`;
-    });
-}
+        fetch(`https://localhost:7166/api/jobassignments/${id}/accept`, {
+            method: "POST"
+        }).then(() => {
+            showToast("✅ Job accepted successfully");
+            setTimeout(() => location.reload(), 800);
+        });
+    }
 
-function uploadProof(id) {
-    location.href = `/Worker/UploadProof/${id}`;
-}
+    function complete(id, btn) {
+        disableButton(btn);
+
+        fetch(`https://localhost:7166/api/jobassignments/${id}/complete`, {
+            method: "POST"
+        }).then(() => {
+            window.location.href = `/Worker/UploadProof/${id}`;
+        });
+    }
 </script>
 
-
 <style>
+    .worker-card {
+        padding: 16px;
+    }
+
+        .worker-card p {
+            margin: 4px 0;
+        }
+
+    .hint {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    ``
+    .progress-bar {
+        display: flex;
+        gap: 8px;
+        margin: 10px 0;
+    }
+
+    .step {
+        flex: 1;
+        padding: 4px;
+        font-size: 12px;
+        text-align: center;
+        background: #e5e7eb;
+        border-radius: 6px;
+    }
+
+        .step.active {
+            background: #2563eb;
+            color: white;
+        }
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #16a34a;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 9999;
+    }
+
+        .toast.show {
+            opacity: 1;
+        }
+
     .page-title {
         margin-bottom: 20px;
     }

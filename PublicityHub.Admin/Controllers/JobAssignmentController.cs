@@ -31,7 +31,7 @@ public class JobAssignmentController : Controller
         var client = _factory.CreateClient("PublicityHubApi");
 
         var response = await client.PostAsJsonAsync(
-            "/api/jobassignments",
+            "/api/jobassignments/assign",
             model
         );
 

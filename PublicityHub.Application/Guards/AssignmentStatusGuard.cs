@@ -7,29 +7,15 @@ namespace PublicityHub.Application.Guards
             AssignmentStatus from,
             AssignmentStatus to)
         {
-            return from switch
+            return (from, to) switch
             {
-                AssignmentStatus.Created =>
-                    to == AssignmentStatus.Available,
+                // Normal flow
+                (AssignmentStatus.Available, AssignmentStatus.Accepted) => true,
+                (AssignmentStatus.Accepted, AssignmentStatus.ProofSubmitted) => true,
+                (AssignmentStatus.ProofSubmitted, AssignmentStatus.Approved) => true,
 
-                AssignmentStatus.Available =>
-                    to == AssignmentStatus.Accepted,
-
-                AssignmentStatus.Accepted =>
-                    to == AssignmentStatus.InProgress,
-
-                AssignmentStatus.InProgress =>
-                    to == AssignmentStatus.ProofSubmitted,
-
-                AssignmentStatus.ProofSubmitted =>
-                    to == AssignmentStatus.Approved ||
-                    to == AssignmentStatus.Rejected,
-
-                AssignmentStatus.Rejected =>
-                    to == AssignmentStatus.Reassigned,
-
-                AssignmentStatus.Reassigned =>
-                    to == AssignmentStatus.Available,
+                // ✅ REJECT RETRY FLOW (THIS WAS MISSING)
+                (AssignmentStatus.ProofSubmitted, AssignmentStatus.Accepted) => true,
 
                 _ => false
             };

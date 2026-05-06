@@ -1,7 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PublicityHub.Admin.Models;
+using PublicityHub.Domain.Entities;
 
 public class AccountController : Controller
 {
+    private readonly IHttpClientFactory _factory;
+    public AccountController(IHttpClientFactory factory)
+    {
+        _factory = factory;
+    }
     // GET: /Account/Login
     public IActionResult Login()
     {
@@ -10,14 +17,30 @@ public class AccountController : Controller
 
     // POST: /Account/Login
     [HttpPost]
-    public IActionResult Login(string phoneNumber)
-    {
-        // HARD DEBUG: confirm POST hits here
-        Console.WriteLine("LOGIN POST HIT");
-        Console.WriteLine("PHONE: " + phoneNumber);
 
-        // TEMP: bypass auth completely
-        HttpContext.Session.SetString("IS_ADMIN", "true");
+    public async Task<IActionResult> Login(string phoneNumber)
+    {
+        var client = _factory.CreateClient("PublicityHubApi");
+
+        var response = await client.PostAsJsonAsync(
+            "/api/users/login",
+            new { phoneNumber }
+        );
+
+        if (!response.IsSuccessStatusCode)
+        {
+            ModelState.AddModelError("", "User not found");
+            return View();
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+        // ✅ NOW user exists
+        HttpContext.Session.SetInt32("UserId", result.User.Id);
+        HttpContext.Session.SetString("Role", result.User.Role);
+
+        if (result.User.Role?.Trim().ToLower() == "worker")
+            return RedirectToAction("Dashboard", "Worker");
 
         return RedirectToAction("Index", "Dashboard");
     }

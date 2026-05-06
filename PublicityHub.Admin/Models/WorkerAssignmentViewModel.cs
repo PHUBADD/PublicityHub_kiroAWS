@@ -5,5 +5,9 @@
         public int AssignmentId { get; set; }
         public string CampaignTitle { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+
+        public decimal Amount { get; set; }
+        public string Location { get; set; }
+
     }
 }

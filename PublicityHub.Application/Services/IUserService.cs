@@ -12,5 +12,6 @@ namespace PublicityHub.Application.Services
         Task<List<UserDto>> GetAllAsync();
         Task<UserDto> CreateAsync(CreateUserDto dto);
         Task<string> LoginAsync(LoginDto dto);
+        Task<LoginResponseDto> LoginWithUserAsync(LoginDto dto);
     }
 }

@@ -1,0 +1,195 @@
+﻿@model PublicityHub.Admin.Models.CreateUserViewModel
+
+@{
+    Layout = "_Layout";
+}
+
+<h2 class="page-title">Create User</h2>
+
+<div class="form-card">
+
+    <!-- Validation Errors -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="error-box">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <form method="post">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input asp-for="FullName" placeholder="Enter full name" />
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input asp-for="PhoneNumber" placeholder="Enter phone number" />
+        </div>
+
+        <div class="form-group">
+            <label>Role</label>
+            <select asp-for="Role">
+                <option value="Admin">Admin</option>
+                <option value="Worker">Worker</option>
+            </select>
+        </div>
+
+        <button type="submit"
+                class="btn primary"
+                onclick="setLoading(this)">
+            Create User
+        </button>
+    </form>
+
+</div>
+
+<script>
+    function setLoading(btn) {
+        btn.classList.add("loading");
+        btn.innerText = "Creating...";
+    }
+</script>
+
+<style>
+
+    /* ✅ Page fade-in */
+    .form-card {
+        animation: fadeIn 0.4s ease-in;
+    }
+
+
+    .form-card {
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .btn.loading::after {
+        content: "";
+        width: 14px;
+        height: 14px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+
+    /* ✅ Card style */
+    .form-card {
+        max-width: 420px;
+        background: #fff;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    /* ✅ Inputs */
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+    /* ✅ Buttons */
+    .btn {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.1s ease, background 0.2s ease;
+    }
+
+        .btn.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* ✅ Loading animation */
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+            .btn.loading::after {
+                content: "";
+                width: 14px;
+                height: 14px;
+                border: 2px solid white;
+                border-top-color: transparent;
+                border-radius: 50%;
+                margin-left: 8px;
+                display: inline-block;
+                animation: spin 0.8s linear infinite;
+            }
+
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+
+    /* ✅ Error box */
+    .error-box {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 14px;
+    }
+
+    .page-title {
+        margin-bottom: 18px;
+    }
+
+</style>

@@ -8,31 +8,53 @@
     <label>Image URL</label>
     <input type="text" id="imageUrl" placeholder="Paste image URL here" />
 
-    <button class="btn submit" onclick="uploadProof()">
+    <button class="btn submit" onclick="uploadProof(this)">
         Submit Proof
     </button>
 </div>
 
+
 <script>
-    function uploadProof() {
+    const API_BASE = "https://localhost:7166";
+
+    function uploadProof(btn) {
         const imageUrl = document.getElementById("imageUrl").value;
         const assignmentId = @ViewBag.AssignmentId;
 
-        fetch(`https://localhost:7166/api/proofs`, {
+        if (!imageUrl || !imageUrl.startsWith("http")) {
+            alert("Please enter a valid image URL");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Uploading...";
+
+        fetch(`${API_BASE}/api/Proofs`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 assignmentId: assignmentId,
-                imageUrl: imageUrl
+                imageUrl: imageUrl,
+                latitude: 0,
+                longitude: 0
+
             })
-        }).then(() => {
-            alert("Proof submitted successfully");
+        })
+        .then(r => {
+            if (!r.ok) throw new Error("Upload failed");
+            alert("✅ Proof uploaded successfully");
             window.location.href = "/Worker/Dashboard";
+        })
+        .catch(err => {
+            alert(err.message);
+            btn.disabled = false;
+            btn.innerText = "Submit Proof";
         });
     }
 </script>
+
 
 <style>
     .proof-form {

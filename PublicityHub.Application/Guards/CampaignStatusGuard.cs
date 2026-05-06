@@ -1,34 +1,32 @@
 ﻿using PublicityHub.Domain.Enums;
-namespace PublicityHub.Application.Guards
+
+public static class CampaignStatusGuard
 {
-    public static class CampaignStatusGuard
+    public static bool CanTransition(
+        CampaignStatus from,
+        CampaignStatus to)
     {
-        public static bool CanTransition(
-            CampaignStatus from,
-            CampaignStatus to)
+        return (from, to) switch
         {
-            return from switch
-            {
-                CampaignStatus.Draft =>
-                    to == CampaignStatus.Published,
+            // Normal lifecycle
+            (CampaignStatus.Draft, CampaignStatus.Published) => true,
 
-                CampaignStatus.Published =>
-                    to == CampaignStatus.PartnerInProgress,
+            (CampaignStatus.Published, CampaignStatus.PartnerInProgress) => true,
+            (CampaignStatus.PartnerInProgress, CampaignStatus.ReadyForAssignment) => true,
+            (CampaignStatus.ReadyForAssignment, CampaignStatus.InExecution) => true,
+            (CampaignStatus.InExecution, CampaignStatus.Completed) => true,
 
-                CampaignStatus.PartnerInProgress =>
-                    to == CampaignStatus.ReadyForAssignment,
+            // ✅ CLOSING RULES 
+            (CampaignStatus.Draft, CampaignStatus.Closed) => true,
+            (CampaignStatus.Published, CampaignStatus.Closed) => true,
+            (CampaignStatus.PartnerInProgress, CampaignStatus.Closed) => true,
+            (CampaignStatus.ReadyForAssignment, CampaignStatus.Closed) => true,
+            (CampaignStatus.InExecution, CampaignStatus.Closed) => true,
 
-                CampaignStatus.ReadyForAssignment =>
-                    to == CampaignStatus.InExecution,
+            // Final close
+            (CampaignStatus.Completed, CampaignStatus.Closed) => true,
 
-                CampaignStatus.InExecution =>
-                    to == CampaignStatus.Completed,
-
-                CampaignStatus.Completed =>
-                    to == CampaignStatus.Closed,
-
-                _ => false
-            };
-        }
+            _ => false
+        };
     }
 }

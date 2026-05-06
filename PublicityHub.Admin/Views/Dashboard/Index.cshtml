@@ -17,11 +17,11 @@
 }
 else
 {
-
     <div class="campaign-grid">
         @foreach (var campaign in Model)
         {
             <div class="campaign-card">
+
                 <div class="card-header">
                     <h3>@campaign.Title</h3>
                     <span class="status-badge @campaign.Status.ToLower()">
@@ -32,51 +32,53 @@ else
                 <p><strong>Amount:</strong> ₹@campaign.Amount</p>
                 <p><strong>Created By:</strong> @campaign.CreatedByName</p>
 
+                @if (campaign.AssignedCount > 0)
+                {
+                    <span class="badge success">
+                        👷 @campaign.AssignedCount Worker(s) Assigned
+                    </span>
+                }
+
+                @if (campaign.Status == "Closed")
+                {
+                    <span class="badge closed">
+                        🚫 Campaign Closed
+                    </span>
+                }
+
+                @if (campaign.Status == "Completed")
+                {
+                    <span class="badge completed">
+                        ✅ Campaign Completed
+                    </span>
+                }
+
                 <div class="card-actions">
-                    @if (campaign.AssignedCount > 0)
-                    {
-                        <span class="badge success">
-                            👷 @campaign.AssignedCount Worker(s) Assigned
-                        </span>
-                    }
+
+                    @* Publish only in Draft *@
                     @if (campaign.Status == "Draft")
                     {
                         <button class="btn publish"
-                                onclick="publish(@campaign.Id)">
+                                onclick="publish(@campaign.Id, this)">
                             Publish
                         </button>
                     }
-                   
 
-                    @if (campaign.Status == "Published")
+                    @* Close only in Draft or Published *@
+                    @if (campaign.Status == "Draft" || campaign.Status == "Published")
                     {
-                        <button class="btn start"
-                                onclick="start(@campaign.Id)">
-                            Start
+                        <button class="btn close"
+                                onclick="closeCampaign(@campaign.Id, this)">
+                            Close
                         </button>
                     }
 
-                    @if (campaign.Status == "Published")
-                    {
-                        <button class="btn assign"
-                                onclick="openAssignModal(@campaign.Id)">
-                            Assign Workers
-                        </button>
-                    }
-
+                    @* Complete only in InExecution *@
                     @if (campaign.Status == "InExecution")
                     {
                         <button class="btn complete"
-                                onclick="complete(@campaign.Id)">
+                                onclick="complete(@campaign.Id, this)">
                             Complete
-                        </button>
-                    }
-
-                    @if (campaign.Status != "Completed" && campaign.Status != "Closed")
-                    {
-                        <button class="btn close"
-                                onclick="closeCampaign(@campaign.Id)">
-                            Close
                         </button>
                     }
                 </div>
@@ -85,6 +87,7 @@ else
                    href="/Proof/ByCampaign/@campaign.Id">
                     View proofs →
                 </a>
+
                 @if (campaign.Status == "Published" || campaign.Status == "InExecution")
                 {
                     <a href="/JobAssignment/Assign/@campaign.Id"
@@ -98,33 +101,61 @@ else
                         👷 Assign Worker
                     </span>
                 }
-
             </div>
         }
     </div>
-
 }
+
 <script>
-    function publish(id) {
-        fetch(`/api/Campaigns/${id}/publish`, { method: "POST" })
-            .then(() => location.reload());
+    const API_BASE = "https://localhost:7166";
+
+    function disable(btn) {
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+        btn.style.opacity = "0.7";
     }
 
-    function start(id) {
-        fetch(`/api/Campaigns/${id}/start`, { method: "POST" })
-            .then(() => location.reload());
+    function publish(id, btn) {
+        disable(btn);
+        fetch(`${API_BASE}/api/Campaigns/${id}/publish`, { method: "POST" })
+            .then(() => {
+                alert("✅ Campaign published successfully");
+                location.reload();
+            });
     }
 
-    function complete(id) {
-        fetch(`/api/Campaigns/${id}/complete`, { method: "POST" })
-            .then(() => location.reload());
+    function complete(id, btn) {
+        disable(btn);
+        fetch(`${API_BASE}/api/Campaigns/${id}/complete`, { method: "POST" })
+            .then(() => {
+                alert("✅ Campaign completed");
+                location.reload();
+            });
     }
 
-    function closeCampaign(id) {
-        fetch(`/api/Campaigns/${id}/close`, { method: "POST" })
-            .then(() => location.reload());
+    function closeCampaign(id, btn) {
+        if (!confirm("Are you sure you want to close this campaign?")) {
+            return;
+        }
+
+        disable(btn);
+
+        fetch(`${API_BASE}/api/Campaigns/${id}/close`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                closedBy: 1,
+                reason: "Closed by admin from dashboard"
+            })
+        }).then(() => {
+            alert("🚫 Campaign closed successfully");
+            location.reload();
+        });
     }
 </script>
+
 <style>
     .campaign-grid {
         display: grid;
@@ -140,7 +171,7 @@ else
         box-shadow: 0 8px 18px rgba(0,0,0,0.08);
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        gap: 10px;
     }
 
     .card-header {
@@ -177,10 +208,33 @@ else
             background: #b91c1c;
         }
 
+    .badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+        .badge.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.closed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
     .card-actions {
         display: flex;
         gap: 8px;
-        margin-top: 12px;
+        margin-top: 10px;
     }
 
     .btn {
@@ -196,11 +250,6 @@ else
             color: white;
         }
 
-        .btn.start {
-            background: #ca8a04;
-            color: white;
-        }
-
         .btn.complete {
             background: #15803d;
             color: white;
@@ -211,16 +260,20 @@ else
             color: white;
         }
 
-        .btn:hover {
-            opacity: 0.9;
+        .btn.assign {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn.disabled {
+            background: #e5e7eb;
+            color: #6b7280;
+            cursor: not-allowed;
         }
 
     .proof-link {
-        margin-top: 10px;
         font-size: 13px;
         color: #2563eb;
         text-decoration: none;
     }
-
-    ``
 </style>

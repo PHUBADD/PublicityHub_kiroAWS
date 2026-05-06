@@ -16,10 +16,10 @@ public class ProofsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Upload([FromForm] CreateProofDto dto)
+    public async Task<IActionResult> Upload([FromBody] CreateProofDto dto)
     {
-        var result = await _service.UploadAsync(dto);
-        return Ok(result);
+        await _service.UploadAsync(dto);
+        return Ok();
     }
 
 
