@@ -104,8 +104,8 @@ else
     function accept(id, btn) {
         disableButton(btn);
 
-        // ✅ Using relative path
-        fetch(`/api/jobassignments/${id}/accept`, {
+        // ✅ FIXED (using API_BASE)
+        fetch(`${window.API_BASE}/api/jobassignments/${id}/accept`, {
             method: "POST"
         }).then(() => {
             showToast("✅ Job accepted successfully");
@@ -116,7 +116,8 @@ else
     function complete(id, btn) {
         disableButton(btn);
 
-        fetch(`/api/jobassignments/${id}/complete`, {
+        // ✅ FIXED (use API_BASE consistently)
+        fetch(`${window.API_BASE}/api/jobassignments/${id}/complete`, {
             method: "POST"
         }).then(() => {
             window.location.href = `/Worker/UploadProof/${id}`;

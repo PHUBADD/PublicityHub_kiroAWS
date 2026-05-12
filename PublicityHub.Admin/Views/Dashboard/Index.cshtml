@@ -107,7 +107,10 @@ else
 }
 
 <script>
-    // ✅ Using relative path -> works with NGINX (no hardcoding)
+    // ✅ Environment-based API switch (local vs production)
+    window.API_BASE = window.location.hostname === "localhost"
+        ? "https://localhost:7166"
+        : "";
 
     function disable(btn) {
         btn.disabled = true;
@@ -118,8 +121,8 @@ else
     function publish(id, btn) {
         disable(btn);
 
-        // ✅ Calls API via same domain → /api handled by NGINX
-        fetch(`/api/Campaigns/${id}/publish`, { method: "POST" })
+        // ✅ FIXED URL
+        fetch(`${window.API_BASE}/api/Campaigns/${id}/publish`, { method: "POST" })
             .then(() => {
                 alert("✅ Campaign published successfully");
                 location.reload();
@@ -129,7 +132,7 @@ else
     function complete(id, btn) {
         disable(btn);
 
-        fetch(`/api/Campaigns/${id}/complete`, { method: "POST" })
+        fetch(`${window.API_BASE}/api/Campaigns/${id}/complete`, { method: "POST" })
             .then(() => {
                 alert("✅ Campaign completed");
                 location.reload();
@@ -143,7 +146,7 @@ else
 
         disable(btn);
 
-        fetch(`/api/Campaigns/${id}/close`, {
+        fetch(`${window.API_BASE}/api/Campaigns/${id}/close`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

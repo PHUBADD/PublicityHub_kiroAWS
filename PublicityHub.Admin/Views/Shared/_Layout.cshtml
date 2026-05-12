@@ -132,5 +132,12 @@
         }
     </script>
 
+    <script>
+        // ✅ Global API base (accessible everywhere)
+        window.API_BASE = window.location.hostname === "localhost"
+            ? "https://localhost:7166"
+            : "";
+    </script>
+
 </body>
 </html>
