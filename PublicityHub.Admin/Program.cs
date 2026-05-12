@@ -4,7 +4,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Session (JWT storage)
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    // Keep session alive
+    options.IdleTimeout = TimeSpan.FromHours(6);
+
+    //  Security
+    options.Cookie.HttpOnly = true;
+
+    //  Required for HTTPS (Render)
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+    //  Prevent login issues across domains
+    options.Cookie.SameSite = SameSiteMode.Lax;
+
+    options.Cookie.IsEssential = true;
+});
+
 
 // HttpClient for API
 builder.Services.AddHttpClient("PublicityHubApi", client =>
@@ -31,7 +47,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
-
+app.UseCookiePolicy();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");

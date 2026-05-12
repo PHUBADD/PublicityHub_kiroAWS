@@ -62,10 +62,26 @@ public class UserService : IUserService
             role = "provider"; // default fallback
         }
 
+
+
+        var phone = dto.PhoneNumber.Trim();
+
+        if (string.IsNullOrWhiteSpace(dto.FullName))
+            throw new Exception("Name required");
+
+        if (phone.Length != 10)
+            throw new Exception("Invalid phone number");
+
+        var exists = await _context.Users
+            .AnyAsync(x => x.PhoneNumber == phone);
+
+        if (exists)
+            throw new Exception("User already exists with this phone numbe");
+
         var user = new User
         {
             FullName = dto.FullName,
-            PhoneNumber = dto.PhoneNumber.ToLower().Trim(),
+            PhoneNumber = phone,
             Role = role,
             CreatedAt = DateTime.UtcNow
         };
@@ -77,9 +93,10 @@ public class UserService : IUserService
         {
             Id = user.Id,
             FullName = user.FullName,
-            PhoneNumber = user.PhoneNumber.ToLower().Trim(),
+            PhoneNumber = user.PhoneNumber,
             Role = user.Role
         };
+
     }
 
 

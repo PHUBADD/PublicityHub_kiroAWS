@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PublicityHub.Admin.Models;
+using System.Net.Http;
 
 namespace PublicityHub.Admin.Controllers
 {
@@ -31,20 +32,23 @@ namespace PublicityHub.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateUserViewModel model)
         {
+            if (!ModelState.IsValid)
+                return View(model);
+
             var client = _factory.CreateClient("PublicityHubApi");
 
-            var response = await client.PostAsJsonAsync(
-                "/api/users",
-                model
-            );
+            var response = await client.PostAsJsonAsync("/api/Users", model);
 
             if (!response.IsSuccessStatusCode)
             {
-                ModelState.AddModelError("", "Failed to create user");
+                var error = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", error);
                 return View(model);
             }
 
-            return RedirectToAction("Index", "Dashboard");
+            TempData["Success"] = "✅ User created successfully";
+
+            return RedirectToAction("Create");
         }
     }
 }

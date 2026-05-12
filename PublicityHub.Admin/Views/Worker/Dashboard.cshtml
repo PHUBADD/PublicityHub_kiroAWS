@@ -101,15 +101,31 @@ else
         btn.style.opacity = "0.6";
     }
 
-    function accept(id, btn) {
-        disableButton(btn);
+        function accept(id, btn) {
+        btn.disabled = true;
+        btn.innerText = "Processing...";
 
-        // ✅ FIXED (using API_BASE)
         fetch(`${window.API_BASE}/api/jobassignments/${id}/accept`, {
             method: "POST"
-        }).then(() => {
-            showToast("✅ Job accepted successfully");
-            setTimeout(() => location.reload(), 800);
+        })
+
+    .then(res => {
+        if (!res.ok) throw new Error("Request failed");
+
+        // ✅ handle both cases (JSON or empty)
+        return res.headers.get("content-length") !== "0"
+            ? res.json()
+            : null;
+    })
+
+        .then(() => {
+            alert("✅ Success");
+            location.reload();
+        })
+        .catch(err => {
+            alert("❌ " + err.message);
+            btn.disabled = false;
+            btn.innerText = "Accept Job";
         });
     }
 

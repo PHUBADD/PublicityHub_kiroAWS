@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PublicityHub.Application.DTOs.Users;
 using PublicityHub.Application.Services;
+using PublicityHub.Domain.Entities;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -22,11 +23,22 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
+    public async Task<IActionResult> CreateUser(CreateUserDto dto)
     {
-        var result = await _service.CreateAsync(dto);
+        try
+        {
+            var user = await _service.CreateAsync(dto);  // ✅ CORRECT CALL
 
-        return Ok(result);
+            return Ok(new
+            {
+                message = "User created successfully",
+                user
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     //[HttpPost("login")]

@@ -133,6 +133,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 var app = builder.Build();
 
 // =========================
@@ -152,5 +154,12 @@ app.UseCors("AdminPolicy");
 //app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseExceptionHandler("/error");
+
+app.Map("/error", (HttpContext context) =>
+{
+    return Results.Problem("Something went wrong.");
+});
 
 app.Run();

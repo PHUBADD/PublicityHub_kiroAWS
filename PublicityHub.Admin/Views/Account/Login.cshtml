@@ -109,8 +109,18 @@
             margin-bottom: 12px;
         }
 
-        ``
+        /*  Create section */
+        .create-user-section {
+            margin-top: 20px;
+        }
+
+            .create-user-section p {
+                font-size: 13px;
+                color: #6b7280;
+            }
+
     </style>
+
 </head>
 
 <body>
@@ -152,6 +162,24 @@
                     }
                 </div>
             }
+
+            <!-- Error Message -->
+            @if (ViewBag.Error != null)
+            {
+                <div class="error-box">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <!-- ✅ CREATE USER SECTION -->
+            <div class="create-user-section">
+                <p>Don’t have an account?</p>
+
+                <a href="/User/Create" class="btn secondary">
+                    ➕ Create New User
+                </a>
+            </div>
+
             
             <div class="footer-text">
                 Secure administrative access only

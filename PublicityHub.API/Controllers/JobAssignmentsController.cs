@@ -23,7 +23,7 @@ public class JobAssignmentsController : ControllerBase
     public async Task<IActionResult> Accept(int id)
     {
         await _service.AcceptAsync(id);
-        return Ok();
+        return Ok(new { message = "Accepted successfully" });
     }
 
     [HttpPost("{id}/complete")]

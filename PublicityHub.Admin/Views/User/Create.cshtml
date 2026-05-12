@@ -1,4 +1,5 @@
 ﻿@model PublicityHub.Admin.Models.CreateUserViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     Layout = "_Layout";
@@ -8,95 +9,122 @@
 
 <div class="form-card">
 
-    <!-- Validation Errors -->
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="error-box">
-            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-            {
-                <p>@error.ErrorMessage</p>
-            }
-        </div>
-    }
+    <!-- ✅ Validation Summary -->
+    <div asp-validation-summary="ModelOnly" class="error-summary"></div>
 
     <form method="post">
+
         <div class="form-group">
             <label>Full Name</label>
             <input asp-for="FullName" placeholder="Enter full name" />
+            <span asp-validation-for="FullName" class="validation-message"></span>
         </div>
 
         <div class="form-group">
             <label>Phone Number</label>
-            <input asp-for="PhoneNumber" placeholder="Enter phone number" />
+            <input asp-for="PhoneNumber"
+                   placeholder="Enter phone number"
+                   maxlength="10"
+                   onkeypress="return onlyNumbers(event)" />
+            <span asp-validation-for="PhoneNumber" class="validation-message"></span>
         </div>
 
         <div class="form-group">
             <label>Role</label>
             <select asp-for="Role">
-                <option value="Admin">Admin</option>
-                <option value="Worker">Worker</option>
+                <option value="">-- Select Role --</option>
+                <option value="admin">Admin</option>
+                <option value="worker">Worker</option>
+                <option value="provider">Provider</option>
             </select>
+            <span asp-validation-for="Role" class="validation-message"></span>
         </div>
 
         <button type="submit"
-                class="btn primary"
-                onclick="setLoading(this)">
+                id="submitBtn"
+                class="btn primary"                
+                disabled>
             Create User
         </button>
-    </form>
 
+    </form>
 </div>
 
-<script>
-    function setLoading(btn) {
-        btn.classList.add("loading");
-        btn.innerText = "Creating...";
-    }
-</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const form = document.querySelector("form");
+            const submitBtn = document.getElementById("submitBtn");
+
+            function checkValidity() {
+                submitBtn.disabled = !form.checkValidity();
+            }
+
+            form.addEventListener("input", checkValidity);
+
+            // ✅ ONLY trigger loading when form is valid and submitting
+            form.addEventListener("submit", function () {
+
+                if (form.checkValidity()) {
+                    submitBtn.classList.add("loading");
+                    submitBtn.innerText = "Creating...";
+                }
+            });
+
+            checkValidity();
+        });
+    </script>
+    <script>
+        function setLoading(btn) {
+            btn.classList.add("loading");
+            btn.innerText = "Creating...";
+        }
+
+        function onlyNumbers(evt) {
+            var charCode = evt.which ? evt.which : evt.keyCode;
+            if (charCode < 48 || charCode > 57) return false;
+            return true;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const form = document.querySelector("form");
+            const submitBtn = document.getElementById("submitBtn");
+
+            function checkValidity() {
+                submitBtn.disabled = !form.checkValidity();
+            }
+
+            form.addEventListener("input", checkValidity);
+            checkValidity();
+        });
+    </script>
+}
 
 <style>
+    button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
 
-    /* ✅ Page fade-in */
+    /* ✅ Validation icon style */
+    .validation-message {
+        color: #dc2626;
+        font-size: 13px;
+        display: block;
+        margin-top: 4px;
+    }
+
+        .validation-message::before {
+            content: "⚠️ ";
+        }
+
+    /* ✅ Card */
     .form-card {
         animation: fadeIn 0.4s ease-in;
-    }
-
-
-    .form-card {
-        animation: fadeIn 0.4s ease-in;
-    }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .btn.loading::after {
-        content: "";
-        width: 14px;
-        height: 14px;
-        border: 2px solid white;
-        border-top-color: transparent;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-
-    /* ✅ Card style */
-    .form-card {
         max-width: 420px;
         background: #fff;
         padding: 24px;
@@ -114,7 +142,6 @@
         padding: 10px;
         border: 1px solid #d1d5db;
         border-radius: 6px;
-        transition: all 0.2s ease;
     }
 
         input:focus, select:focus {
@@ -123,48 +150,49 @@
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
         }
 
-    /* ✅ Buttons */
-    .btn {
+    /* ✅ Button */
+    .btn.primary {
         width: 100%;
         padding: 10px;
         border-radius: 6px;
+        background: #2563eb;
+        color: white;
         border: none;
         cursor: pointer;
-        font-weight: 600;
-        transition: transform 0.1s ease, background 0.2s ease;
     }
 
-        .btn.primary {
-            background: #2563eb;
-            color: white;
+    /* ✅ Loading animation */
+    .btn.loading {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+        .btn.loading::after {
+            content: "";
+            width: 14px;
+            height: 14px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            margin-left: 8px;
+            display: inline-block;
+            animation: spin 0.8s linear infinite;
         }
 
-        .btn:hover {
-            transform: translateY(-1px);
-        }
+    /* ✅ Summary error */
+    .error-summary {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+    }
 
-        .btn:active {
-            transform: scale(0.97);
-        }
+    .page-title {
+        margin-bottom: 18px;
+    }
 
-        /* ✅ Loading animation */
-        .btn.loading {
-            pointer-events: none;
-            opacity: 0.8;
-        }
-
-            .btn.loading::after {
-                content: "";
-                width: 14px;
-                height: 14px;
-                border: 2px solid white;
-                border-top-color: transparent;
-                border-radius: 50%;
-                margin-left: 8px;
-                display: inline-block;
-                animation: spin 0.8s linear infinite;
-            }
-
+    /* ✅ Animations */
 
     @@keyframes fadeIn {
         from {
@@ -178,18 +206,12 @@
         }
     }
 
-
-    /* ✅ Error box */
-    .error-box {
-        background: #fee2e2;
-        color: #991b1b;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 14px;
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
-    .page-title {
-        margin-bottom: 18px;
-    }
 
+    
 </style>

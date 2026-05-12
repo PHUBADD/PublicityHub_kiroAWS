@@ -61,18 +61,36 @@ else
         btn.disabled = true;
         btn.innerText = "Approving...";
 
-        fetch(`/api/Proofs/${id}/approve`, {
-            method: "POST"
-        }).then(() => location.reload());
+
+    fetch(`${window.API_BASE}/api/Proofs/${id}/approve`, {
+        method: "POST"
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Request failed");
+    })
+    .then(() => location.reload())
+    .catch(err => {
+        alert("❌ " + err.message);
+    });
+
     }
 
     function reject(id, btn) {
         btn.disabled = true;
         btn.innerText = "Rejecting...";
 
-        fetch(`/api/Proofs/${id}/reject`, {
-            method: "POST"
-        }).then(() => location.reload());
+
+    fetch(`${window.API_BASE}/api/Proofs/${id}/reject`, {
+        method: "POST"
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Request failed");
+    })
+    .then(() => location.reload())
+    .catch(err => {
+        alert("❌ " + err.message);
+    });
+
     }
 </script>
 
