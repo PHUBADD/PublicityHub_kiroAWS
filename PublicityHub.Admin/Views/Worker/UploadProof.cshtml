@@ -15,7 +15,7 @@
 
 
 <script>
-    const API_BASE = "https://localhost:7166";
+    // ✅ Removed API_BASE completely
 
     function uploadProof(btn) {
         const imageUrl = document.getElementById("imageUrl").value;
@@ -29,7 +29,8 @@
         btn.disabled = true;
         btn.innerText = "Uploading...";
 
-        fetch(`${API_BASE}/api/Proofs`, {
+        // ✅ API call using relative path
+        fetch(`/api/Proofs`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -39,12 +40,13 @@
                 imageUrl: imageUrl,
                 latitude: 0,
                 longitude: 0
-
             })
         })
         .then(r => {
             if (!r.ok) throw new Error("Upload failed");
             alert("✅ Proof uploaded successfully");
+
+            // ✅ redirect works same domain
             window.location.href = "/Worker/Dashboard";
         })
         .catch(err => {

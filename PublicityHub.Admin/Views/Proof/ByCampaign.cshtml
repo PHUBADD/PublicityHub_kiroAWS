@@ -55,11 +55,13 @@ else
 }
 
 <script>
+    // ✅ Removed localhost → using same-domain API
+
     function approve(id, btn) {
         btn.disabled = true;
         btn.innerText = "Approving...";
 
-        fetch(`https://localhost:7166/api/Proofs/${id}/approve`, {
+        fetch(`/api/Proofs/${id}/approve`, {
             method: "POST"
         }).then(() => location.reload());
     }
@@ -68,7 +70,7 @@ else
         btn.disabled = true;
         btn.innerText = "Rejecting...";
 
-        fetch(`https://localhost:7166/api/Proofs/${id}/reject`, {
+        fetch(`/api/Proofs/${id}/reject`, {
             method: "POST"
         }).then(() => location.reload());
     }

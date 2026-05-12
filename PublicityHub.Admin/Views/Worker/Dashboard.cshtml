@@ -104,7 +104,8 @@ else
     function accept(id, btn) {
         disableButton(btn);
 
-        fetch(`https://localhost:7166/api/jobassignments/${id}/accept`, {
+        // ✅ Using relative path
+        fetch(`/api/jobassignments/${id}/accept`, {
             method: "POST"
         }).then(() => {
             showToast("✅ Job accepted successfully");
@@ -115,7 +116,7 @@ else
     function complete(id, btn) {
         disableButton(btn);
 
-        fetch(`https://localhost:7166/api/jobassignments/${id}/complete`, {
+        fetch(`/api/jobassignments/${id}/complete`, {
             method: "POST"
         }).then(() => {
             window.location.href = `/Worker/UploadProof/${id}`;
