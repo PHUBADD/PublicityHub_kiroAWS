@@ -38,7 +38,7 @@
         btn.disabled = true;
         btn.innerText = "Creating...";
 
-        fetch(`${window.API_BASE}/api/Users`, {
+        apiFetch(`/api/Users`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

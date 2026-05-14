@@ -7,119 +7,125 @@
 
 <h2 class="page-title">My Jobs</h2>
 
-@if (!Model.Any())
-{
-    <div class="empty-state">
-        <h3>No jobs assigned yet</h3>
-        <p>🕒 Please wait. New tasks will appear here soon.</p>
-    </div>
-}
-else
-{
-    <div class="worker-grid">
-
-        @foreach (var job in Model)
-        {
-            <div class="worker-card">
-
-                <h3>@job.CampaignTitle</h3>
-
-                <p>💰 Payment: ₹@job.Amount</p>
-                <p>📍 Location: @job.Location</p>
-
-                <!-- ✅ Status -->
-                <span class="status-badge @job.Status.ToLower()">
-                    @job.Status
-                </span>
-
-                <!-- ✅ Progress -->
-                <div class="progress-bar">
-                    <div class="step @(job.Status == "Available" ? "active" : "")">Assigned</div>
-                    <div class="step @(job.Status == "Accepted" ? "active" : "")">Accepted</div>
-                    <div class="step @(job.Status == "ProofSubmitted" ? "active" : "")">Submitted</div>
-                    <div class="step @(job.Status == "Approved" ? "active" : "")">Approved</div>
-                </div>
-
-                <!-- ✅ Actions -->
-                <div class="actions">
-
-                    @if (job.Status == "Available")
-                    {
-                        <p class="hint">👉 Accept this job to begin work</p>
-
-                        <button class="btn primary"
-                                onclick="accept(@job.AssignmentId, this)">
-                            Accept Job
-                        </button>
-                    }
-                    else if (job.Status == "Accepted")
-                    {
-                        <p class="hint">✅ Complete the job and upload proof</p>
-
-                        <button class="btn success"
-                                onclick="complete(@job.AssignmentId, this)">
-                            Mark as Completed
-                        </button>
-                    }
-                    else if (job.Status == "ProofSubmitted")
-                    {
-                        <p class="hint">📤 Proof submitted. Waiting for approval</p>
-
-                        <span class="success-text">Submitted ✅</span>
-                    }
-                    else if (job.Status == "Approved")
-                    {
-                        <p class="hint">🎉 Job approved. Great work!</p>
-
-                        <span class="success-text">Approved ✅</span>
-                    }
-
-                </div>
-
-            </div>
-        }
-
-    </div>
-
-    <div id="toast" class="toast"></div>
-}
+<div id="jobsContainer"></div>
+<div id="toast" class="toast"></div>
 
 <script>
-    function showToast(message) {
-        const toast = document.getElementById("toast");
-        toast.innerText = message;
-        toast.classList.add("show");
+    document.addEventListener("DOMContentLoaded", function () {
 
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 2500);
+        const container = document.getElementById("jobsContainer");
+
+        apiFetch("/api/jobassignments/worker/1")
+            .then(res => res.json())
+            .then(jobs => {
+
+                if (!jobs || jobs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No jobs assigned yet</h3>
+                            <p>🕒 Please wait. New tasks will appear here soon.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `<div class="worker-grid">`;
+
+                jobs.forEach(job => {
+
+                    html += `
+                    <div class="worker-card">
+
+                        <h3>${job.campaignTitle}</h3>
+
+                        <p>💰 Payment: ₹${job.amount}</p>
+                        <p>📍 Location: ${job.location}</p>
+
+                        <!-- ✅ Status badge -->
+                        <span class="status-badge ${job.status.toLowerCase()}">
+                            ${job.status}
+                        </span>
+
+                        <!-- ✅ Progress UI (RESTORED ✅) -->
+                        <div class="progress-bar">
+                            <div class="step ${job.status === "Available" ? "active" : ""}">Assigned</div>
+                            <div class="step ${job.status === "Accepted" ? "active" : ""}">Accepted</div>
+                            <div class="step ${job.status === "ProofSubmitted" ? "active" : ""}">Submitted</div>
+                            <div class="step ${job.status === "Approved" ? "active" : ""}">Approved</div>
+                        </div>
+
+                        <!-- ✅ Actions -->
+                        <div class="actions">
+                            ${renderActions(job)}
+                        </div>
+
+                    </div>
+                    `;
+                });
+
+                html += `</div>`;
+                container.innerHTML = html;
+
+            })
+            .catch(err => {
+                container.innerHTML = "<p>❌ Failed to load jobs</p>";
+                console.error(err);
+            });
+    });
+
+    function renderActions(job) {
+
+        if (job.status === "Available") {
+            return `
+                <p class="hint">👉 Accept this job to begin work</p>
+                <button class="btn primary"
+                    onclick="accept(${job.assignmentId}, this)">
+                    Accept Job
+                </button>
+            `;
+        }
+
+        if (job.status === "Accepted") {
+            return `
+                <p class="hint">✅ Complete and upload proof</p>
+                <button class="btn success"
+                    onclick="complete(${job.assignmentId}, this)">
+                    Mark Completed
+                </button>
+            `;
+        }
+
+        if (job.status === "ProofSubmitted") {
+            return `
+                <p class="hint">📤 Waiting for admin approval</p>
+                <span class="success-text">Submitted ✅</span>
+            `;
+        }
+
+        if (job.status === "Approved") {
+            return `
+                <p class="hint">🎉 Approved</p>
+                <span class="success-text">Approved ✅</span>
+            `;
+        }
+
+        return "";
     }
 
-    function disableButton(btn) {
-        btn.disabled = true;
-        btn.innerText = "Processing...";
-        btn.style.opacity = "0.6";
-    }
+    function accept(id, btn) {
 
-        function accept(id, btn) {
         btn.disabled = true;
         btn.innerText = "Processing...";
 
-        fetch(`${window.API_BASE}/api/jobassignments/${id}/accept`, {
+        apiFetch(`/api/jobassignments/${id}/accept`, {
             method: "POST"
         })
-
-    .then(res => {
-        if (!res.ok) throw new Error("Request failed");
-
-        // ✅ handle both cases (JSON or empty)
-        return res.headers.get("content-length") !== "0"
-            ? res.json()
-            : null;
-    })
-
+        .then(res => {
+            if (!res.ok) throw new Error("Failed");
+            return res.text();
+        })
         .then(() => {
-            alert("✅ Success");
+            showToast("✅ Job Accepted");
             location.reload();
         })
         .catch(err => {
@@ -130,16 +136,29 @@ else
     }
 
     function complete(id, btn) {
-        disableButton(btn);
 
-        // ✅ FIXED (use API_BASE consistently)
-        fetch(`${window.API_BASE}/api/jobassignments/${id}/complete`, {
+        btn.disabled = true;
+
+        apiFetch(`/api/jobassignments/${id}/complete`, {
             method: "POST"
-        }).then(() => {
+        })
+        .then(() => {
             window.location.href = `/Worker/UploadProof/${id}`;
         });
     }
+
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2500);
+    }
 </script>
+
+
 
 <style>
     .worker-card {
@@ -207,12 +226,41 @@ else
         gap: 20px;
     }
 
-    .worker-card {
-        background: #fff;
-        padding: 16px;
-        border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    }
+
+.worker-card {
+    padding: 18px;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+    border-left: 6px solid transparent;
+}
+
+/* ✅ STATUS COLORS FOR CARDS */
+.worker-card.available {
+    background: #f0f9ff;
+    border-left-color: #2563eb;
+}
+
+.worker-card.accepted {
+    background: #fffbeb;
+    border-left-color: #f59e0b;
+}
+
+.worker-card.proofsubmitted {
+    background: #f5f3ff;
+    border-left-color: #7c3aed;
+}
+
+.worker-card.approved {
+    background: #ecfdf5;
+    border-left-color: #16a34a;
+}
+
+/* ✅ Hover effect */
+.worker-card:hover {
+    transform: translateY(-4px);
+}
+
 
     .status-badge {
         display: inline-block;

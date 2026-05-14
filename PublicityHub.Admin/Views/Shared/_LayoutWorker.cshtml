@@ -38,6 +38,27 @@
             }
     </style>
 </head>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+
+                // ✅ Remove token
+                localStorage.removeItem("token");
+
+                console.log("✅ Token cleared");
+
+                // ✅ Force redirect
+                window.location.href = "/Account/Login";
+            });
+        }
+
+    });
+</script>
 
 <body>
 
@@ -46,15 +67,56 @@
         <div><strong>PublicityHub</strong></div>
 
         <div>
-            <a href="/Account/Logout" class="logout">Logout</a>
-        </div>
+        @*<a href="/Account/Logout" class="logout">Logout</a>*@  
+
+<a href="#" id="logoutBtn">Logout</a>
+</div>
     </div>
 
     <!-- ✅ Main content -->
     <div class="container">
         @RenderBody()
     </div>
+    <script src="/js/api.js"></script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const token = localStorage.getItem("token");
+
+            console.log("Checking token on Worker page:", token);
+
+            // ✅ Strong validation
+            if (!token || token === "null" || token === "undefined" || token.trim() === "") {
+                console.log("❌ Invalid token → redirect");
+                window.location.href = "/Account/Login";
+                return;
+            }
+
+            // ✅ OPTIONAL: decode token to check role (simple method)
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log("Token payload:", payload);
+
+                const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+                if (!role || role.toLowerCase() !== "worker") {
+                    console.log("❌ Not a worker → redirect");
+                    window.location.href = "/Account/Login";
+                    return;
+                }
+
+                console.log("✅ Worker verified → stay");
+
+            } catch (e) {
+                console.log("❌ Token decode failed → redirect");
+                window.location.href = "/Account/Login";
+            }
+
+        });
+    </script>
+   
 
 </body>
 </html>
-``

@@ -55,7 +55,13 @@ public class ProofController : Controller
         var client = _factory.CreateClient("PublicityHubApi");
 
         // JWT intentionally disabled for now
-        await client.PostAsync($"/api/Proofs/{action}/{id}", null);
+
+        var response = await client.PostAsync($"/api/Proofs/{id}/{action}", null);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            TempData["Error"] = "❌ Action failed";
+        }
 
         return RedirectToAction(nameof(Index));
     }

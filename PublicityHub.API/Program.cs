@@ -150,8 +150,8 @@ app.UseStaticFiles();
 app.UseCors("AdminPolicy");
 
 //  VERY IMPORTANT ORDER
-//app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

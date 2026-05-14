@@ -59,47 +59,80 @@
             const form = document.querySelector("form");
             const submitBtn = document.getElementById("submitBtn");
 
+            // ✅ IMPORTANT: Prevent error if no form
+            if (!form || !submitBtn) return;
+
+            // ✅ Allow only numbers (global for input)
+            window.onlyNumbers = function (evt) {
+                var charCode = evt.which ? evt.which : evt.keyCode;
+                if (charCode < 48 || charCode > 57) return false;
+                return true;
+            };
+
             function checkValidity() {
                 submitBtn.disabled = !form.checkValidity();
             }
 
             form.addEventListener("input", checkValidity);
 
-            // ✅ ONLY trigger loading when form is valid and submitting
-            form.addEventListener("submit", function () {
+            form.addEventListener("submit", function (e) {
 
-                if (form.checkValidity()) {
-                    submitBtn.classList.add("loading");
-                    submitBtn.innerText = "Creating...";
-                }
+                e.preventDefault();
+
+                if (!form.checkValidity()) return;
+
+                const token = localStorage.getItem("token");
+
+                // if (!token) {
+                //     alert("Session expired. Please login again.");
+                //     window.location.href = "/Account/Login";
+                //     return;
+                // }
+
+                const data = {
+                    fullName: document.querySelector("[name='FullName']").value,
+                    phoneNumber: document.querySelector("[name='PhoneNumber']").value,
+                    role: document.querySelector("[name='Role']").value
+                };
+
+                submitBtn.classList.add("loading");
+                submitBtn.innerText = "Creating...";
+
+                apiFetch("/api/users", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(res => {
+                    if (res.status === 401) {
+                        localStorage.removeItem("token");
+                        alert("Session expired");
+                        window.location.href = "/Account/Login";
+                        return;
+                    }
+                    if (!res.ok) throw new Error("Create failed");
+                    return res.json();
+                })
+                .then(() => {
+                    alert("✅ User created successfully");
+                    window.location.reload();
+                })
+                .catch(err => {
+                    alert("❌ Error creating user");
+                    console.error(err);
+                })
+                .finally(() => {
+                    submitBtn.classList.remove("loading");
+                    submitBtn.innerText = "Create User";
+                    checkValidity();
+                });
+
             });
 
             checkValidity();
-        });
-    </script>
-    <script>
-        function setLoading(btn) {
-            btn.classList.add("loading");
-            btn.innerText = "Creating...";
-        }
 
-        function onlyNumbers(evt) {
-            var charCode = evt.which ? evt.which : evt.keyCode;
-            if (charCode < 48 || charCode > 57) return false;
-            return true;
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const form = document.querySelector("form");
-            const submitBtn = document.getElementById("submitBtn");
-
-            function checkValidity() {
-                submitBtn.disabled = !form.checkValidity();
-            }
-
-            form.addEventListener("input", checkValidity);
-            checkValidity();
         });
     </script>
 }

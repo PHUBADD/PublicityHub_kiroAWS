@@ -33,7 +33,7 @@
         btn.innerText = "Uploading...";
 
         // ✅ API call
-        fetch(`${window.API_BASE}/api/Proofs`, {
+        apiFetch(`/api/Proofs`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

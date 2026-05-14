@@ -34,8 +34,12 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(x =>
                 x.PhoneNumber == dto.PhoneNumber.Trim().ToLower());
 
+
         if (user == null)
-            throw new Exception("User not found");
+        {
+            return null;
+        }
+
 
         var token = _jwtService.GenerateToken(user.Id, user.Role);
 

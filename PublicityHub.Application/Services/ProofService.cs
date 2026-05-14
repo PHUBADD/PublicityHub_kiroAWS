@@ -145,4 +145,37 @@ public class ProofService : IProofService
             ImageUrl = p.ImageUrl,
             Status = p.Status.ToString()
         };
+
+    public async Task SubmitProofAsync(int assignmentId, string imageUrl)
+    {
+        var assignment = await _context.JobAssignments.FindAsync(assignmentId)
+            ?? throw new Exception("Assignment not found");
+
+        var proof = new Proof
+        {
+            AssignmentId = assignmentId,
+            ImageUrl = imageUrl,
+            UploadedAt = DateTime.UtcNow,
+            Status = ProofStatus.UnderReview  // FIX ENUM
+    };
+
+        _context.Proofs.Add(proof);
+
+        // ✅ USE GUARD (IMPORTANT)
+        ChangeAssignmentStatus(assignment, AssignmentStatus.ProofSubmitted);
+
+        await _context.SaveChangesAsync();
+    }
+    private void ChangeAssignmentStatus(JobAssignment assignment, AssignmentStatus newStatus)
+    {
+        if (!AssignmentStatusGuard.CanTransition(assignment.Status, newStatus))
+        {
+            throw new InvalidOperationException(
+                $"Invalid assignment transition: {assignment.Status} → {newStatus}");
+        }
+
+        assignment.Status = newStatus;
+    }
+
+
 }

@@ -110,7 +110,7 @@
             <a href="/Proof/Index">Proofs</a>
             <a href="/Admin/Vision" class="vision">Vision</a>
             <a href="/User/Create">Create User</a>
-            <a href="/Account/Logout">Logout</a>
+            <a href="#" onclick="logout()">Logout</a>
         </nav>
 
         <div>
@@ -129,7 +129,7 @@
     }
 
     @RenderBody()
-
+    <script src="/js/api.js"></script>
     <!-- ✅ Theme + Language Script -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -155,6 +155,16 @@
 
         function setLang(lang) {
             window.location.href = "/Account/SetLanguage?lang=" + lang;
+        }
+
+    </script>
+    <script>
+        function logout() {
+            // ✅ Remove token
+            localStorage.removeItem("token");
+
+            // ✅ Redirect to login page
+            window.location.href = "/Account/Login";
         }
     </script>
 

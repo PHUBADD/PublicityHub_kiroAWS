@@ -62,13 +62,7 @@
             border: 1px solid #d1d5db;
             border-radius: 8px;
             font-size: 15px;
-            outline: none;
-            transition: border 0.15s ease;
         }
-
-            .login-card input:focus {
-                border-color: #2563eb;
-            }
 
         .login-card button {
             width: 100%;
@@ -80,25 +74,44 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            position: relative;
         }
 
-            .login-card button:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 6px 20px rgba(37,99,235,0.35);
+            /* ✅ Loading spinner */
+            .login-card button.loading {
+                pointer-events: none;
+                opacity: 0.7;
             }
 
-        .error {
-            margin-top: 16px;
-            color: #b91c1c;
-            font-size: 14px;
+                .login-card button.loading::after {
+                    content: "";
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid #fff;
+                    border-top-color: transparent;
+                    border-radius: 50%;
+                    position: absolute;
+                    right: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    animation: spin 0.8s linear infinite;
+                }
+
+        @@keyframes spin {
+            to
+
+        {
+            transform: translateY(-50%) rotate(360deg);
         }
 
-        .footer-text {
-            margin-top: 28px;
-            font-size: 12px;
-            color: #64748b;
-            letter-spacing: 0.02em;
+        }
+
+        .success-box {
+            background: #dcfce7;
+            color: #166534;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
         }
 
         .error-box {
@@ -109,28 +122,102 @@
             margin-bottom: 12px;
         }
 
-        /*  Create section */
         .create-user-section {
             margin-top: 20px;
         }
-
-            .create-user-section p {
-                font-size: 13px;
-                color: #6b7280;
-            }
-
     </style>
-
 </head>
 
 <body>
 
+    <!-- ✅ API -->
+    <script src="/js/api.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const form = document.querySelector("form");
+            const btn = form.querySelector("button");
+
+            if (!form) return;
+
+            form.addEventListener("submit", function (e) {
+
+                e.preventDefault();
+
+                const phone = document.querySelector("input[name='phoneNumber']").value.trim();
+
+                // ✅ Show loading
+                btn.classList.add("loading");
+                btn.innerText = "Logging in...";
+
+                apiFetch("/api/users/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phone
+                    })
+                })
+        .then(async res => {
+
+            // ✅ Read response body safely
+            let errorData = {};
+            try {
+                errorData = await res.json();
+            } catch {
+                errorData = {};
+            }
+
+            if (!res.ok) {
+
+                // ✅ Show API message if available
+                if (res.status === 401) {
+                    throw new Error(errorData.message || "Invalid login");
+                }
+
+                throw new Error(errorData.message || "Server error. Please try again.");
+            }
+
+            return errorData; // ✅ already parsed
+        })
+                .then(data => {
+
+                    // ✅ Store token
+                    localStorage.setItem("token", data.token);
+
+                    // ✅ Show success message
+                    alert("✅ Login successful");
+
+                    const role = data.user.role.trim().toLowerCase();
+
+                    if (role === "admin") {
+                        window.location.href = "/Dashboard/Index";
+                    } else {
+                        window.location.href = "/Worker/Dashboard";
+                    }
+                })
+                .catch(err => {
+                    alert("❌ " + err.message);
+                })
+                .finally(() => {
+                    // ✅ Reset button
+                    btn.classList.remove("loading");
+                    btn.innerText = "Login";
+                });
+
+            });
+
+        });
+    </script>
+
+    <!-- ✅ UI -->
     <div class="login-wrapper">
         <div class="login-card">
 
             <div class="login-title">PublicityHub Admin</div>
 
-            <!-- ✅ SLOGAN (EN + TA) -->
             <div class="login-slogan">
                 Built to empower people who work on the ground with dignity and fairness.
             </div>
@@ -138,51 +225,20 @@
                 நிலத்தில் உழைக்கும் மக்களுக்கு மரியாதையும் நீதியும் வழங்க உருவாக்கப்பட்டது.
             </div>
 
-            <form method="post" action="/Account/Login">
+            <form>
                 <input type="text"
                        name="phoneNumber"
-                       placeholder="Admin Phone Number"
+                       placeholder="Phone Number"
                        required />
 
                 <button type="submit">Login</button>
             </form>
 
-            @if (ViewBag.Error != null)
-            {
-                <div class="error">
-                    @ViewBag.Error
-                </div>
-            }
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="error-box">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        <p>@error.ErrorMessage</p>
-                    }
-                </div>
-            }
-
-            <!-- Error Message -->
-            @if (ViewBag.Error != null)
-            {
-                <div class="error-box">
-                    @ViewBag.Error
-                </div>
-            }
-
-            <!-- ✅ CREATE USER SECTION -->
             <div class="create-user-section">
                 <p>Don’t have an account?</p>
-
-                <a href="/User/Create" class="btn secondary">
+                <a href="/User/Create">
                     ➕ Create New User
                 </a>
-            </div>
-
-            
-            <div class="footer-text">
-                Secure administrative access only
             </div>
 
         </div>
@@ -190,3 +246,4 @@
 
 </body>
 </html>
+``

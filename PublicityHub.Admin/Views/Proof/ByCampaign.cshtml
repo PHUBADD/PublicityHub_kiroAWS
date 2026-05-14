@@ -62,7 +62,7 @@ else
         btn.innerText = "Approving...";
 
 
-    fetch(`${window.API_BASE}/api/Proofs/${id}/approve`, {
+    apiFetch(`/api/Proofs/${id}/approve`, {
         method: "POST"
     })
     .then(res => {
@@ -80,7 +80,7 @@ else
         btn.innerText = "Rejecting...";
 
 
-    fetch(`${window.API_BASE}/api/Proofs/${id}/reject`, {
+    apiFetch(`api/Proofs/${id}/reject`, {
         method: "POST"
     })
     .then(res => {

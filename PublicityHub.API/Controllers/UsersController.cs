@@ -9,19 +9,24 @@ using PublicityHub.Domain.Entities;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _service;
 
-    public UsersController(IUserService service)
+    private readonly IUserService _service;
+    private readonly IJwtService _jwtService;
+
+
+    public UsersController(IUserService service, IJwtService jwtService)
     {
         _service = service;
+        _jwtService = jwtService;
     }
+
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
         var users = await _service.GetAllAsync();
         return Ok(users);
     }
-
+    [AllowAnonymous]
     [HttpPost]
     public async Task<IActionResult> CreateUser(CreateUserDto dto)
     {
@@ -56,13 +61,25 @@ public class UsersController : ControllerBase
     {
         try
         {
-            var result = await _service.LoginWithUserAsync(dto);
+            var user = await _service.LoginWithUserAsync(dto);
 
-            return Ok(result);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid phone number" });
+            }
+
+            var token = _jwtService.GenerateToken(
+                user.User.Id,
+                user.User.Role
+            );
+
+            user.Token = token;
+
+            return Ok(user);
         }
-        catch
+        catch (Exception ex)
         {
-            return NotFound();
+            return StatusCode(500, new { message = "Internal server error" });
         }
     }
 
