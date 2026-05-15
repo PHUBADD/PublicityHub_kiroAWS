@@ -40,6 +40,7 @@ public class JobAssignmentController : Controller
 
 
             var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"❌ API Error: {response.StatusCode} → {error}");
 
             if (error.Contains("unique_worker_campaign"))
             {

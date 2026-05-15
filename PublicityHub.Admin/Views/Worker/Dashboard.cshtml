@@ -12,13 +12,32 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-
         const container = document.getElementById("jobsContainer");
 
-        apiFetch("/api/jobassignments/worker/1")
-            .then(res => res.json())
-            .then(jobs => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            container.innerHTML = "<p>❌ Not logged in. Please <a href='/Auth/Login'>login</a>.</p>";
+            return;
+        }
 
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const workerId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+        if (!workerId) {
+            container.innerHTML = "<p>❌ Worker ID not found in token.</p>";
+            return;
+        }
+
+        // ✅ apiFetch handles local vs production automatically
+        apiFetch(`/api/jobassignments/worker/${workerId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(jobs => {
                 if (!jobs || jobs.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -30,23 +49,17 @@
                 }
 
                 let html = `<div class="worker-grid">`;
-
                 jobs.forEach(job => {
-
                     html += `
-                    <div class="worker-card">
-
+                    <div class="worker-card ${job.status.toLowerCase()}">
                         <h3>${job.campaignTitle}</h3>
-
                         <p>💰 Payment: ₹${job.amount}</p>
                         <p>📍 Location: ${job.location}</p>
 
-                        <!-- ✅ Status badge -->
                         <span class="status-badge ${job.status.toLowerCase()}">
                             ${job.status}
                         </span>
 
-                        <!-- ✅ Progress UI (RESTORED ✅) -->
                         <div class="progress-bar">
                             <div class="step ${job.status === "Available" ? "active" : ""}">Assigned</div>
                             <div class="step ${job.status === "Accepted" ? "active" : ""}">Accepted</div>
@@ -54,107 +67,89 @@
                             <div class="step ${job.status === "Approved" ? "active" : ""}">Approved</div>
                         </div>
 
-                        <!-- ✅ Actions -->
                         <div class="actions">
                             ${renderActions(job)}
                         </div>
-
                     </div>
                     `;
                 });
-
                 html += `</div>`;
                 container.innerHTML = html;
-
             })
             .catch(err => {
-                container.innerHTML = "<p>❌ Failed to load jobs</p>";
+                container.innerHTML = `<p>❌ Failed to load jobs: ${err.message}</p>`;
                 console.error(err);
             });
     });
 
     function renderActions(job) {
-
         if (job.status === "Available") {
             return `
-                <p class="hint">👉 Accept this job to begin work</p>
-                <button class="btn primary"
-                    onclick="accept(${job.assignmentId}, this)">
-                    Accept Job
-                </button>
-            `;
+                    <p class="hint">👉 Accept this job to begin work</p>
+                    <button class="btn primary" onclick="accept(${job.assignmentId}, this)">Accept Job</button>
+                `;
         }
-
         if (job.status === "Accepted") {
             return `
-                <p class="hint">✅ Complete and upload proof</p>
-                <button class="btn success"
-                    onclick="complete(${job.assignmentId}, this)">
-                    Mark Completed
-                </button>
-            `;
+                    <p class="hint">✅ Complete and upload proof</p>
+                    <button class="btn success" onclick="complete(${job.assignmentId}, this)">Mark Completed</button>
+                `;
         }
-
         if (job.status === "ProofSubmitted") {
             return `
-                <p class="hint">📤 Waiting for admin approval</p>
-                <span class="success-text">Submitted ✅</span>
-            `;
+                    <p class="hint">📤 Waiting for admin approval</p>
+                    <span class="success-text">Submitted ✅</span>
+                `;
         }
-
         if (job.status === "Approved") {
             return `
-                <p class="hint">🎉 Approved</p>
-                <span class="success-text">Approved ✅</span>
-            `;
+                    <p class="hint">🎉 Approved</p>
+                    <span class="success-text">Approved ✅</span>
+                `;
         }
-
         return "";
     }
 
     function accept(id, btn) {
-
         btn.disabled = true;
         btn.innerText = "Processing...";
 
-        apiFetch(`/api/jobassignments/${id}/accept`, {
-            method: "POST"
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Failed");
-            return res.text();
-        })
-        .then(() => {
-            showToast("✅ Job Accepted");
-            location.reload();
-        })
-        .catch(err => {
-            alert("❌ " + err.message);
-            btn.disabled = false;
-            btn.innerText = "Accept Job";
-        });
+        // ✅ apiFetch — works on localhost and render.com
+        apiFetch(`/api/jobassignments/${id}/accept`, { method: "POST" })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to accept");
+                showToast("✅ Job Accepted");
+                setTimeout(() => location.reload(), 800);
+            })
+            .catch(err => {
+                alert("❌ " + err.message);
+                btn.disabled = false;
+                btn.innerText = "Accept Job";
+            });
     }
 
     function complete(id, btn) {
-
         btn.disabled = true;
+        btn.innerText = "Processing...";
 
-        apiFetch(`/api/jobassignments/${id}/complete`, {
-            method: "POST"
-        })
-        .then(() => {
-            window.location.href = `/Worker/UploadProof/${id}`;
-        });
+        // ✅ apiFetch — works on localhost and render.com
+        apiFetch(`/api/jobassignments/${id}/complete`, { method: "POST" })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to complete");
+                window.location.href = `/Worker/UploadProof/${id}`;
+            })
+            .catch(err => {
+                alert("❌ " + err.message);
+                btn.disabled = false;
+                btn.innerText = "Mark Completed";
+            });
     }
 
     function showToast(message) {
         const toast = document.getElementById("toast");
         toast.innerText = message;
         toast.classList.add("show");
-
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 2500);
+        setTimeout(() => toast.classList.remove("show"), 2500);
     }
 </script>
 
