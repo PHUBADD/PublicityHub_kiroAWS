@@ -5,6 +5,5 @@
     public string Location { get; set; } = string.Empty;
     public decimal Amount { get; set; }
 
-    // TEMP: hardcoded admin
-    public int CreatedBy { get; set; } = 1;
+    public int CreatedBy { get; set; }
 }

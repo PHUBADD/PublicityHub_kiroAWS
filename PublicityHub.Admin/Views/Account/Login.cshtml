@@ -160,29 +160,32 @@
                         phoneNumber: phone
                     })
                 })
-        .then(async res => {
 
-            // ✅ Read response body safely
-            let errorData = {};
-            try {
-                errorData = await res.json();
-            } catch {
-                errorData = {};
-            }
+                .then(async res => {
 
-            if (!res.ok) {
+                    // ✅ Read response body safely
+                    let errorData = {};
+                    try {
+                        errorData = await res.json();
+                    } catch {
+                        errorData = {};
+                    }
 
-                // ✅ Show API message if available
-                if (res.status === 401) {
-                    throw new Error(errorData.message || "Invalid login");
-                }
+                    if (!res.ok) {
 
-                throw new Error(errorData.message || "Server error. Please try again.");
-            }
+                        if (res.status === 401) {
+                            throw new Error(errorData.message || "Invalid login");
+                        }
 
-            return errorData; // ✅ already parsed
-        })
+                        throw new Error(errorData.message || "Server error. Please try again.");
+                    }
+
+                    return errorData;
+                })
+
                 .then(data => {
+
+                    console.log("Login response:", data);
 
                     // ✅ Store token
                     localStorage.setItem("token", data.token);
@@ -190,17 +193,33 @@
                     // ✅ Show success message
                     alert("✅ Login successful");
 
-                    const role = data.user.role.trim().toLowerCase();
+                    // ✅ SAFE ROLE READ
+                    const role = (data.user && data.user.role)
+                        ? data.user.role.toString().trim().toLowerCase()
+                        : "";
+
+                    console.log("Role:", role);
 
                     if (role === "admin") {
                         window.location.href = "/Dashboard/Index";
-                    } else {
+                    }
+                    else if (role === "worker") {
                         window.location.href = "/Worker/Dashboard";
                     }
+                    else if (role === "provider") {
+                        window.location.href = "/Provider/Dashboard";
+                    }
+                    else {
+                        alert("❌ Unknown role. Cannot redirect.");
+                        console.error("Invalid role:", role);
+                    }
                 })
+
                 .catch(err => {
                     alert("❌ " + err.message);
+                    console.error("Login error:", err);
                 })
+
                 .finally(() => {
                     // ✅ Reset button
                     btn.classList.remove("loading");
@@ -211,6 +230,7 @@
 
         });
     </script>
+
 
     <!-- ✅ UI -->
     <div class="login-wrapper">

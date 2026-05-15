@@ -21,6 +21,16 @@ public class JobAssignmentService : IJobAssignmentService
     // Guard ensures lifecycle integrity.
     public async Task<JobAssignmentDto> AssignAsync(CreateJobAssignmentDto dto)
     {
+        // ✅ CHECK: already assigned or active
+        var exists = await _context.JobAssignments
+            .AnyAsync(x => x.CampaignId == dto.CampaignId
+                && x.Status != AssignmentStatus.Rejected);
+
+        if (exists)
+        {
+            throw new Exception("Worker already assigned to this campaign or work in progress");
+        }
+
         var assignment = new JobAssignment
         {
             CampaignId = dto.CampaignId,
@@ -63,7 +73,6 @@ public class JobAssignmentService : IJobAssignmentService
         var assignment = await _context.JobAssignments.FindAsync(assignmentId)
             ?? throw new Exception("Assignment not found");
 
-        ChangeStatus(assignment, AssignmentStatus.InProgress);
         ChangeStatus(assignment, AssignmentStatus.ProofSubmitted);
 
         assignment.CompletedAt = DateTime.UtcNow;

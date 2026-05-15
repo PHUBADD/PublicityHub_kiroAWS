@@ -44,6 +44,9 @@ public class AccountController : Controller
         HttpContext.Session.SetInt32("UserId", result.User.Id);
         HttpContext.Session.SetString("Role", result.User.Role);
 
+        // ✅ THIS IS THE MISSING STEP
+        HttpContext.Session.SetString("token", result.Token);
+
         if (result.User.Role?.Trim().ToLower() == "worker")
             return RedirectToAction("Dashboard", "Worker");
 

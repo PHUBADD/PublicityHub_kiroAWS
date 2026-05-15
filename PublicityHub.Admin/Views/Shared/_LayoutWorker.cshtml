@@ -1,122 +1,156 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>PublicityHub</title>
+    <title>PublicityHub Worker</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <style>
+        :root {
+            --bg-main: #f7fafc;
+            --text-main: #0f172a;
+        }
+
+        body[data-theme="dark"] {
+            --bg-main: #020617;
+            --text-main: #e5e7eb;
+        }
+
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f3f4f6;
+            font-family: Arial, system-ui, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
         }
 
-        .navbar {
+        /* ✅ HEADER (same style as admin) */
+        .worker-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            background: #111827;
+            background: #1f2937;
+            padding: 15px 25px;
             color: white;
-            padding: 12px 20px;
         }
 
+        .logo {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-left: 40px;
+            flex-grow: 1;
+        }
+
+            .nav-links a {
+                color: #e5e7eb;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+                .nav-links a:hover {
+                    text-decoration: underline;
+                }
+
+        /* ✅ BUTTON STYLE (same feel as admin) */
+        .action-btn {
+            background: none;
+            border: 1px solid #94a3b8;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            margin-left: 10px;
+        }
+
+            .action-btn:hover {
+                background: rgba(255,255,255,0.1);
+            }
+
+        /* ✅ MAIN CONTENT */
         .container {
             max-width: 1100px;
             margin: auto;
             padding: 20px;
         }
-
-        a.logout {
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-            a.logout:hover {
-                text-decoration: underline;
-            }
     </style>
 </head>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
 
-        const logoutBtn = document.getElementById("logoutBtn");
+<body data-theme="light">
 
-        if (logoutBtn) {
-            logoutBtn.addEventListener("click", function (e) {
-                e.preventDefault();
+    <!-- ✅ HEADER -->
+    <header class="worker-header">
+        <div class="logo">PublicityHub Worker</div>
 
-                // ✅ Remove token
-                localStorage.removeItem("token");
-
-                console.log("✅ Token cleared");
-
-                // ✅ Force redirect
-                window.location.href = "/Account/Login";
-            });
-        }
-
-    });
-</script>
-
-<body>
-
-    <!-- ✅ Top bar -->
-    <div class="navbar">
-        <div><strong>PublicityHub</strong></div>
+        <nav class="nav-links">
+            <a href="/Worker/Dashboard">My Jobs</a>
+        </nav>
 
         <div>
-        @*<a href="/Account/Logout" class="logout">Logout</a>*@  
+            <button id="themeToggle" class="action-btn">🌙 / ☀️</button>
+            <button onclick="logout()" class="action-btn">Logout</button>
+        </div>
+    </header>
 
-<a href="#" id="logoutBtn">Logout</a>
-</div>
-    </div>
-
-    <!-- ✅ Main content -->
+    <!-- ✅ MAIN CONTENT -->
     <div class="container">
         @RenderBody()
     </div>
+
+    <!-- ✅ API -->
     <script src="/js/api.js"></script>
 
-
+    <!-- ✅ THEME + LOGOUT -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
+            // ✅ Theme Toggle
+            const btn = document.getElementById("themeToggle");
+
+            if (btn) {
+                btn.addEventListener("click", function () {
+                    const current = document.body.getAttribute("data-theme");
+                    const next = current === "dark" ? "light" : "dark";
+                    document.body.setAttribute("data-theme", next);
+                    localStorage.setItem("theme", next);
+                });
+            }
+
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme) {
+                document.body.setAttribute("data-theme", savedTheme);
+            }
+
+            // ✅ Token validation
             const token = localStorage.getItem("token");
 
-            console.log("Checking token on Worker page:", token);
-
-            // ✅ Strong validation
             if (!token || token === "null" || token === "undefined" || token.trim() === "") {
-                console.log("❌ Invalid token → redirect");
                 window.location.href = "/Account/Login";
                 return;
             }
 
-            // ✅ OPTIONAL: decode token to check role (simple method)
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                console.log("Token payload:", payload);
-
                 const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
                 if (!role || role.toLowerCase() !== "worker") {
-                    console.log("❌ Not a worker → redirect");
                     window.location.href = "/Account/Login";
-                    return;
                 }
-
-                console.log("✅ Worker verified → stay");
-
-            } catch (e) {
-                console.log("❌ Token decode failed → redirect");
+            } catch {
                 window.location.href = "/Account/Login";
             }
-
         });
+
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "/Account/Login";
+        }
     </script>
-   
 
 </body>
 </html>
+``

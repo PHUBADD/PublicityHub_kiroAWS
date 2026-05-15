@@ -18,25 +18,55 @@
         <p class="subtitle">
             Assign a worker to this campaign
         </p>
-
-        <form method="post">
             <!-- ✅ THIS IS THE KEY FIX -->
             <input type="hidden" asp-for="CampaignId" />
 
             <div class="form-group">
                 <label>Worker ID</label>
-                <input name="WorkerId"
+            <input type="number" id="workerId" name="WorkerId"
                        placeholder="Enter worker id"
                        required />
             </div>
 
-            <button type="submit" class="btn-assign">
+        <button type="button" class="btn-assign" onclick="assignJob()">
                 ✅ Assign Worker
             </button>
-        </form>
     </div>
 </div>
+<script>
+    function assignJob() {
 
+        const workerId = document.getElementById("workerId").value;
+        const campaignId = @Model.CampaignId;
+
+        if (!workerId) {
+            alert("Enter worker id");
+            return;
+        }
+
+        apiFetch("/api/jobassignments/assign", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                campaignId: campaignId,
+                workerId: parseInt(workerId)
+            })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Assignment failed->Worker already assigned to this campaign or work in progress");
+            return res.json();
+        })
+        .then(() => {
+            alert("✅ Worker assigned");
+            window.location.href = "/Dashboard/Index";
+        })
+        .catch(err => {
+            alert("❌ " + err.message);
+        });
+    }
+</script>
 
 <style>
     .error-box {

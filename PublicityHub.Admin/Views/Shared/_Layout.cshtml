@@ -51,11 +51,6 @@
                 font-weight: 500;
             }
 
-                .nav-links a.vision {
-                    color: #60a5fa;
-                    font-weight: 600;
-                }
-
                 .nav-links a:hover {
                     text-decoration: underline;
                 }
@@ -77,18 +72,6 @@
                 background: rgba(255,255,255,0.1);
             }
 
-        /* ✅ Validation & success styles */
-        .validation-message {
-            color: #dc2626;
-            font-size: 13px;
-            display: block;
-            margin-top: 4px;
-        }
-
-            .validation-message::before {
-                content: "⚠️ ";
-            }
-
         .success-box {
             background: #dcfce7;
             color: #166534;
@@ -103,13 +86,27 @@
 <body data-theme="light">
 
     <header class="admin-header">
-        <div class="logo">PublicityHub Admin Panel</div>
 
-        <nav class="nav-links">
+        <div class="logo">PublicityHub Panel</div>
+
+        <!-- ✅ ADMIN NAV -->
+        <nav class="nav-links" id="adminNav">
             <a href="/Dashboard/Index">Dashboard</a>
             <a href="/Proof/Index">Proofs</a>
-            <a href="/Admin/Vision" class="vision">Vision</a>
+            <a href="/Admin/Vision">Vision</a>
             <a href="/User/Create">Create User</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+
+        <!-- ✅ PROVIDER NAV -->
+        <nav class="nav-links" id="providerNav" style="display:none;">
+            <a href="/Provider/Dashboard">Dashboard</a>
+            <a href="/Campaign/Create">Create Campaign</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+
+        <!-- ✅ LOGOUT ONLY -->
+        <nav class="nav-links" id="logoutOnly" style="display:none;">
             <a href="#" onclick="logout()">Logout</a>
         </nav>
 
@@ -118,66 +115,118 @@
             <button onclick="setLang('en')" class="lang-btn">EN</button>
             <button onclick="setLang('ta')" class="lang-btn">தமிழ்</button>
         </div>
+
     </header>
 
-    <!-- ✅ Success message -->
     @if (TempData["Success"] != null)
     {
-        <div class="success-box">
-            @TempData["Success"]
-        </div>
+        <div class="success-box">@TempData["Success"]</div>
     }
 
     @RenderBody()
+
+    <!-- ✅ API -->
     <script src="/js/api.js"></script>
-    <!-- ✅ Theme + Language Script -->
+
+    <!-- ✅ ROLE + NAV CONTROL -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            // Theme toggle
+            const token = localStorage.getItem("token");
+
+            const adminNav = document.getElementById("adminNav");
+            const providerNav = document.getElementById("providerNav");
+            const logoutOnly = document.getElementById("logoutOnly");
+
+            if (!token) {
+                if (adminNav) adminNav.style.display = "none";
+                if (providerNav) providerNav.style.display = "none";
+                if (logoutOnly) logoutOnly.style.display = "flex";
+                return;
+            }
+
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+
+                const role =
+                    payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+                console.log("User role:", role);
+
+                if (role && role.toLowerCase() === "admin") {
+                    adminNav.style.display = "flex";
+                    providerNav.style.display = "none";
+                    logoutOnly.style.display = "none";
+                }
+                else if (role && role.toLowerCase() === "provider") {
+                    adminNav.style.display = "none";
+                    providerNav.style.display = "flex";
+                    logoutOnly.style.display = "none";
+                }
+                else {
+                    adminNav.style.display = "none";
+                    providerNav.style.display = "none";
+                    logoutOnly.style.display = "flex";
+                }
+
+            } catch (e) {
+                console.error("Token parse error", e);
+                adminNav.style.display = "none";
+                providerNav.style.display = "none";
+                logoutOnly.style.display = "flex";
+            }
+
+        });
+    </script>
+
+    <!-- ✅ THEME -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
             const btn = document.getElementById("themeToggle");
 
             if (btn) {
                 btn.addEventListener("click", function () {
                     const current = document.body.getAttribute("data-theme");
                     const next = current === "dark" ? "light" : "dark";
+
                     document.body.setAttribute("data-theme", next);
                     localStorage.setItem("theme", next);
                 });
             }
 
-            // Load saved theme
             const savedTheme = localStorage.getItem("theme");
             if (savedTheme) {
                 document.body.setAttribute("data-theme", savedTheme);
             }
         });
+    </script>
 
+    <!-- ✅ LANGUAGE -->
+    <script>
         function setLang(lang) {
             window.location.href = "/Account/SetLanguage?lang=" + lang;
         }
-
     </script>
+
+    <!-- ✅ LOGOUT -->
     <script>
         function logout() {
-            // ✅ Remove token
             localStorage.removeItem("token");
-
-            // ✅ Redirect to login page
             window.location.href = "/Account/Login";
         }
     </script>
 
-    <!-- ✅ Global API Base -->
+    <!-- ✅ API BASE -->
     <script>
         window.API_BASE = window.location.hostname === "localhost"
             ? "https://localhost:7166"
             : "";
     </script>
-    <!-- ✅ REQUIRED: Load jQuery FIRST -->
+
+    <!-- ✅ jQuery -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <!-- ✅ IMPORTANT: DO NOT PUT jQuery HERE -->
-    <!-- ✅ Scripts will be injected from View -->
+
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

@@ -45,9 +45,39 @@
             <button type="submit" class="btn-create">
                 ✅ Create Campaign
             </button>
+            <input type="hidden" asp-for="CreatedBy" />
+            <input type="hidden" id="roleField" name="Role" />
+
         </form>
     </div>
+
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+
+            const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            const userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+            document.getElementById("roleField").value = role;
+
+            const createdByField = document.querySelector("[name='CreatedBy']");
+            if (createdByField) {
+                createdByField.value = userId;
+            }
+
+        } catch (e) {
+            console.error(e);
+        }
+    });
+</script>
+``
 
 <style>
     .create-container {
