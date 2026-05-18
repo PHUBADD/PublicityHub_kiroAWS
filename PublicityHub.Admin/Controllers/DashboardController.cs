@@ -18,7 +18,7 @@ public class DashboardController : Controller
     public async Task<IActionResult> Index()
     {
         var client = _factory.CreateClient("PublicityHubApi");
-        var response = await client.GetAsync("/api/Campaigns");
+        var response = await client.GetAsync("/api/Campaigns/all");
 
         if (!response.IsSuccessStatusCode)
         {

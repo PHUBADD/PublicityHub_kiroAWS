@@ -1,164 +1,143 @@
-﻿
-@using PublicityHub.Admin.Models
+﻿@using PublicityHub.Admin.Models
 @model List<CampaignViewModel>
 
 @{
     Layout = "_Layout";
 }
 
-<h2 class="provider-title">🌿 Provider Campaign Dashboard</h2>
+<h2>🌿 Provider Campaign Dashboard</h2>
 
 <a href="/Campaign/Create" class="btn primary">
     ➕ Create Campaign
 </a>
 
-<!-- ✅ ALWAYS KEEP THIS -->
-<p class="empty" id="emptyMessage">No campaigns created yet.</p>
+<p id="emptyMessage">No campaigns found.</p>
 
-<!-- ✅ ALWAYS KEEP THIS (VERY IMPORTANT) -->
-<div class="campaign-grid" id="campaignContainer">
+<div class="campaign-grid" id="campaignContainer"></div>
 
-    @* Optional fallback rendering *@
-    @if (Model != null && Model.Any())
-    {
-        foreach (var c in Model)
-        {
-            <div class="campaign-card">
-                <h3>@c.Title</h3>
-
-                <p><strong>Status:</strong> @c.Status</p>
-                <p><strong>Amount:</strong> ₹@c.Amount</p>
-
-                <p class="creator">👤 @c.CreatedByName</p>
-
-                <div class="actions">
-                    @if (c.Status == "Draft")
-                    {
-                        <button onclick="publish(@c.Id, this)">Publish</button>
-                    }
-
-                    @if (c.Status == "Draft" || c.Status == "Published")
-                    {
-                        <button onclick="closeCampaign(@c.Id, this)">Close</button>
-                    }
-                </div>
-            </div>
-        }
-    }
-
-</div>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
 
-    const token = localStorage.getItem("token");
+    document.addEventListener("DOMContentLoaded", function () {
 
-    if (!token) {
-        console.error("No token found");
-        return;
-    }
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-    try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
 
-        console.log("UserId:", userId);
-
-        loadProviderCampaigns(userId);
-
-    } catch (e) {
-        console.error("Token parse error:", e);
-    }
-});
-
-
-function loadProviderCampaigns(userId) {
-
-    apiFetch(`/api/Campaigns/by-user?userId=${userId}`)
-        .then(res => res.json())
-        .then(data => {
-
-            console.log("API DATA:", data);
-
-            const container = document.getElementById("campaignContainer");
-            const emptyMsg = document.getElementById("emptyMessage");
-
-            if (!container) {
-                console.error("Container not found!");
-                return;
-            }
-
-            // ✅ hide default message
-            if (emptyMsg) emptyMsg.style.display = "none";
-
-            container.innerHTML = "";
-
-            if (!data || !data.length) {
-                container.innerHTML = "<p class='empty'>No campaigns created yet.</p>";
-                return;
-            }
-
-            data.forEach(c => {
-
-                let actions = "";
-
-                if (c.status === "Draft") {
-                    actions += `<button onclick="publish(${c.id}, this)">Publish</button>`;
-                }
-
-                if (c.status === "Draft" || c.status === "Published") {
-                    actions += `<button onclick="closeCampaign(${c.id}, this)">Close</button>`;
-                }
-
-                container.innerHTML += `
-                    <div class="campaign-card">
-                        <h3>${c.title}</h3>
-                        <p><strong>Status:</strong> ${c.status}</p>
-                        <p><strong>Amount:</strong> ₹${c.amount}</p>
-                        <p class="creator">👤 ${c.createdByName}</p>
-                        <div class="actions">${actions}</div>
-                    </div>
-                `;
-            });
-
-        })
-        .catch(err => {
-            console.error("API ERROR:", err);
-            alert("Error loading campaigns");
-        });
-}
-
-
-// ✅ existing functions
-function disable(btn) {
-    btn.disabled = true;
-    btn.innerText = "Processing...";
-}
-
-function publish(id, btn) {
-    disable(btn);
-
-    apiFetch(`/api/Campaigns/${id}/publish`, { method: "POST" })
-        .then(() => {
-            alert("✅ Campaign published");
-            location.reload();
-        });
-}
-
-function closeCampaign(id, btn) {
-    disable(btn);
-
-    apiFetch(`/api/Campaigns/${id}/close`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            closedBy: 1,
-            reason: "Closed by provider"
-        })
-    }).then(() => {
-        alert("🚫 Campaign closed");
-        location.reload();
+        loadCampaigns(userId);
     });
-}
+
+
+    function loadCampaigns(userId) {
+
+        apiFetch(`/api/Campaigns/by-user?userId=${userId}`)
+            .then(res => res.json())
+            .then(data => {
+
+                const container = document.getElementById("campaignContainer");
+                const emptyMsg = document.getElementById("emptyMessage");
+
+                container.innerHTML = "";
+
+                if (!data || data.length === 0) {
+                    emptyMsg.style.display = "block";
+                    return;
+                }
+
+                emptyMsg.style.display = "none";
+
+                    data.forEach(c => {
+
+        let statusColor = c.status.toLowerCase();
+
+        let badge = "";
+        if (c.assignedCount > 0) {
+            badge = "<span class='badge success'>👷 " + c.assignedCount + " Worker(s) Assigned</span>";
+        }
+
+        let closedBadge = "";
+        if (c.status === "Closed") {
+            closedBadge = "<span class='badge closed'>🚫 Closed</span>";
+        }
+
+        let actions = "";
+
+        if (c.status === "Draft") {
+            actions += "<button class='btn publish' onclick='publish(" + c.id + ", this)'>Publish</button>";
+        }
+
+        if (c.status === "Draft" || c.status === "Published") {
+            actions += "<button class='btn close' onclick='closeCampaign(" + c.id + ", this)'>Close</button>";
+        }
+
+        // ✅ FIXED Assign Worker
+    let assignBtn = "";
+
+    if (c.status === "Published" || c.status === "InExecution") {
+        assignBtn = "<a href='/JobAssignment/Assign/" + c.id + "' class='btn assign full-btn'>👷 Assign Worker</a>";
+    } else {
+        assignBtn = "<a class='btn disabled full-btn'>👷 Assign Worker</a>";
+    }
+    ``
+
+        // ✅ FIXED Proof Link
+        let proofLink = "<a class='proof-link' href='/Proof/ByCampaign/" + c.id + "'>View proofs →</a>";
+
+        container.innerHTML +=
+            "<div class='campaign-card'>" +
+
+                "<div class='card-header'>" +
+                    "<h3>" + c.title + "</h3>" +
+                    "<span class='status-badge " + statusColor + "'>" + c.status + "</span>" +
+                "</div>" +
+
+                "<p><strong>Amount:</strong> ₹" + c.amount + "</p>" +
+                "<p><strong>Created By:</strong> " + c.createdByName + "</p>" +
+
+                badge +
+                closedBadge +
+
+                "<div class='card-actions'>" +
+                    actions +
+                "</div>" +
+
+                proofLink +
+                assignBtn +
+
+            "</div>";
+    });
+
+            })
+            .catch(err => console.error(err));
+    }
+
+
+    // 🔹 ACTIONS
+    function disable(btn) {
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+    }
+
+    function publish(id, btn) {
+        disable(btn);
+
+        apiFetch(`/api/Campaigns/${id}/publish`, { method: "POST" })
+            .then(() => location.reload());
+    }
+
+    function closeCampaign(id, btn) {
+        disable(btn);
+
+        apiFetch(`/api/Campaigns/${id}/close`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                closedBy: 1,
+                reason: "Closed by provider"
+            })
+        }).then(() => location.reload());
+    }
 </script>
 
 
@@ -217,29 +196,26 @@ function closeCampaign(id, btn) {
         animation: bgChange 12s infinite alternate;
     }
 
-@@keyframes bgChange {
-        0%
+    @@keyframes bgChange {
+        0% {
+            background: #f0f9ff;
+        }
 
-    {
-        background: #f0f9ff;
-    }
+        25% {
+            background: #ecfdf5;
+        }
 
-    25% {
-        background: #ecfdf5;
-    }
+        50% {
+            background: #fef3c7;
+        }
 
-    50% {
-        background: #fef3c7;
-    }
+        75% {
+            background: #f5f3ff;
+        }
 
-    75% {
-        background: #f5f3ff;
-    }
-
-    100% {
-        background: #fff7ed;
-    }
-
+        100% {
+            background: #fff7ed;
+        }
     }
 
     .provider-title {
@@ -252,4 +228,135 @@ function closeCampaign(id, btn) {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 15px;
     }
-    </style>
+
+    .campaign-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .campaign-card {
+        background: white;
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        transition: 0.2s;
+    }
+
+        .campaign-card:hover {
+            transform: translateY(-4px);
+        }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-size: 12px;
+        min-width: 70px;
+        text-align: center;
+    }
+
+
+        .status-badge.draft {
+            background: gray;
+        }
+
+        .status-badge.published {
+            background: #2563eb;
+        }
+
+        .status-badge.inexecution {
+            background: orange;
+        }
+
+        .status-badge.completed {
+            background: green;
+        }
+
+        .status-badge.closed {
+            background: red;
+        }
+
+    .badge {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+    }
+
+        .badge.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.closed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+
+
+    .btn {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+        .btn.publish {
+            background: blue;
+            color: white;
+        }
+
+        .btn.close {
+            background: red;
+            color: white;
+        }
+
+        .btn.assign {
+            display: block;
+            margin-top: 10px;
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn.disabled {
+            background: #ccc;
+            color: #555;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    .proof-link {
+        display: inline-block;
+        margin-top: 10px;
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: #2563eb;
+    }
+
+    .campaign-card p {
+        margin: 4px 0;
+    }
+
+    .card-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .full-btn {
+        display: block;
+        width: 80%;
+        text-align: center;
+        margin-left: 15px;
+    }
+
+</style>
