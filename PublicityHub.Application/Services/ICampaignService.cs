@@ -4,6 +4,7 @@ using PublicityHub.Application.DTOs.Proofs;
 public interface ICampaignService
 {
     Task<List<CampaignDto>> GetAllAsync();
+    Task<List<CampaignDto>> GetAllAsyncuser(int? userId = null);
     Task<CampaignDto> CreateAsync(CreateCampaignDto dto);
     Task<List<CampaignProofCountDto>> GetProofCountsAsync();
     Task<List<ProofDto>> GetProofsByCampaignAsync(int campaignId);

@@ -19,11 +19,16 @@ public class CampaignsController : ControllerBase
         _service = service;
     }
 
-    [HttpGet]
-    //[Authorize(Roles = "Customer")]
+    [HttpGet("all")]    //[Authorize(Roles = "Customer")]
     public async Task<IActionResult> Get()
     {
         var data = await _service.GetAllAsync();
+        return Ok(data);
+    }
+    [HttpGet("by-user")]
+    public async Task<IActionResult> Get([FromQuery] int? userId)
+    {
+        var data = await _service.GetAllAsyncuser(userId);
         return Ok(data);
     }
 

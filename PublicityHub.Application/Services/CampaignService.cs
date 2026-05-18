@@ -48,6 +48,31 @@ public class CampaignService : ICampaignService
             AssignedCount = c.JobAssignments.Count
         }).ToList();
     }
+    public async Task<List<CampaignDto>> GetAllAsyncuser(int? userId = null)
+{
+    var query = _context.Campaigns
+        .Include(c => c.CreatedByUser)
+        .Include(c => c.JobAssignments)
+        .AsQueryable();
+
+    // ✅ FILTER ONLY FOR PROVIDER
+    if (userId.HasValue)
+    {
+        query = query.Where(c => c.CreatedBy == userId.Value);
+    }
+
+    var campaigns = await query.ToListAsync();
+
+    return campaigns.Select(c => new CampaignDto
+    {
+        Id = c.Id,
+        Title = c.Title,
+        Amount = c.Amount,
+        CreatedByName = c.CreatedByUser.FullName,
+        Status = c.Status,
+        AssignedCount = c.JobAssignments.Count
+    }).ToList();
+}
 
     /// <summary>
     /// Creates a new campaign.

@@ -1,4 +1,6 @@
-﻿@model List<CampaignViewModel>
+﻿
+@using PublicityHub.Admin.Models
+@model List<CampaignViewModel>
 
 @{
     Layout = "_Layout";
@@ -10,17 +12,18 @@
     ➕ Create Campaign
 </a>
 
-@if (!Model.Any())
-{
-    <p class="empty">No campaigns created yet.</p>
-}
-else
-{
-    <div class="campaign-grid">
-        @foreach (var c in Model)
+<!-- ✅ ALWAYS KEEP THIS -->
+<p class="empty" id="emptyMessage">No campaigns created yet.</p>
+
+<!-- ✅ ALWAYS KEEP THIS (VERY IMPORTANT) -->
+<div class="campaign-grid" id="campaignContainer">
+
+    @* Optional fallback rendering *@
+    @if (Model != null && Model.Any())
+    {
+        foreach (var c in Model)
         {
             <div class="campaign-card">
-
                 <h3>@c.Title</h3>
 
                 <p><strong>Status:</strong> @c.Status</p>
@@ -41,65 +44,123 @@ else
                 </div>
             </div>
         }
-    </div>
+    }
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        console.error("No token found");
+        return;
+    }
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+        console.log("UserId:", userId);
+
+        loadProviderCampaigns(userId);
+
+    } catch (e) {
+        console.error("Token parse error:", e);
+    }
+});
+
+
+function loadProviderCampaigns(userId) {
+
+    apiFetch(`/api/Campaigns/by-user?userId=${userId}`)
+        .then(res => res.json())
+        .then(data => {
+
+            console.log("API DATA:", data);
+
+            const container = document.getElementById("campaignContainer");
+            const emptyMsg = document.getElementById("emptyMessage");
+
+            if (!container) {
+                console.error("Container not found!");
+                return;
+            }
+
+            // ✅ hide default message
+            if (emptyMsg) emptyMsg.style.display = "none";
+
+            container.innerHTML = "";
+
+            if (!data || !data.length) {
+                container.innerHTML = "<p class='empty'>No campaigns created yet.</p>";
+                return;
+            }
+
+            data.forEach(c => {
+
+                let actions = "";
+
+                if (c.status === "Draft") {
+                    actions += `<button onclick="publish(${c.id}, this)">Publish</button>`;
+                }
+
+                if (c.status === "Draft" || c.status === "Published") {
+                    actions += `<button onclick="closeCampaign(${c.id}, this)">Close</button>`;
+                }
+
+                container.innerHTML += `
+                    <div class="campaign-card">
+                        <h3>${c.title}</h3>
+                        <p><strong>Status:</strong> ${c.status}</p>
+                        <p><strong>Amount:</strong> ₹${c.amount}</p>
+                        <p class="creator">👤 ${c.createdByName}</p>
+                        <div class="actions">${actions}</div>
+                    </div>
+                `;
+            });
+
+        })
+        .catch(err => {
+            console.error("API ERROR:", err);
+            alert("Error loading campaigns");
+        });
 }
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
 
-        const token = localStorage.getItem("token");
+// ✅ existing functions
+function disable(btn) {
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+}
 
-        if (!token) {
-            console.error("No token found");
-            return;
-        }
+function publish(id, btn) {
+    disable(btn);
 
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-
-            const userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
-            const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-
-            console.log("UserId:", userId);
-            console.log("Role:", role);
-
-        } catch (e) {
-            console.error("Token parse error:", e);
-        }
-    });
-</script>
-<script>
-    function disable(btn) {
-        btn.disabled = true;
-        btn.innerText = "Processing...";
-    }
-
-    function publish(id, btn) {
-        disable(btn);
-
-        apiFetch(`/api/Campaigns/${id}/publish`, { method: "POST" })
-            .then(() => {
-                alert("✅ Campaign published");
-                location.reload();
-            });
-    }
-
-    function closeCampaign(id, btn) {
-        disable(btn);
-
-        apiFetch(`/api/Campaigns/${id}/close`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                closedBy: 1,
-                reason: "Closed by provider"
-            })
-        }).then(() => {
-            alert("🚫 Campaign closed");
+    apiFetch(`/api/Campaigns/${id}/publish`, { method: "POST" })
+        .then(() => {
+            alert("✅ Campaign published");
             location.reload();
         });
-    }
+}
+
+function closeCampaign(id, btn) {
+    disable(btn);
+
+    apiFetch(`/api/Campaigns/${id}/close`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            closedBy: 1,
+            reason: "Closed by provider"
+        })
+    }).then(() => {
+        alert("🚫 Campaign closed");
+        location.reload();
+    });
+}
 </script>
+
 
 <style>
     .provider-title {
@@ -191,4 +252,4 @@ else
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 15px;
     }
-
+    </style>
