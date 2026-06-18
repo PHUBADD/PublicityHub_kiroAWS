@@ -222,10 +222,13 @@
             <a href="#" onclick="logout()">Logout</a>
         </nav>
 
-        <div>
-            <button id="themeToggle" class="theme-btn">?? / ??</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <span id="headerUserName" style="color:#94a3b8;font-size:13px;font-weight:500;"></span>
+            <button id="themeToggle" class="theme-btn" title="Toggle theme">
+                <span id="themeIcon">&#9790;</span> Mode
+            </button>
             <button onclick="setLang('en')" class="lang-btn">EN</button>
-            <button onclick="setLang('ta')" class="lang-btn">?????</button>
+            <button onclick="setLang('ta')" class="lang-btn">Tamil</button>
         </div>
 
     </header>
@@ -233,7 +236,13 @@
     <!-- LOGOUT CONFIRM MODAL -->
     <div class="modal-overlay" id="logoutModal">
         <div class="modal-box">
-            <div class="modal-icon">??</div>
+            <div class="modal-icon">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </div>
             <div class="modal-title">Logging out?</div>
             <div class="modal-text">You'll need to sign in again to access your dashboard.</div>
             <div class="modal-actions">
@@ -312,25 +321,35 @@
         });
     </script>
 
-    <!-- ? THEME -->
+    <!-- THEME -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-
             const btn = document.getElementById("themeToggle");
+            const icon = document.getElementById("themeIcon");
+
+            const savedTheme = localStorage.getItem("theme") || "light";
+            document.body.setAttribute("data-theme", savedTheme);
+            if (icon) icon.innerHTML = savedTheme === "dark" ? "&#9728;" : "&#9790;";
+
+            // Show logged-in user name in header
+            try {
+                const token = localStorage.getItem("token");
+                if (token) {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const name = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
+                              || payload["name"] || payload["unique_name"] || "";
+                    const nameEl = document.getElementById("headerUserName");
+                    if (nameEl && name) nameEl.innerText = name;
+                }
+            } catch(e) {}
 
             if (btn) {
                 btn.addEventListener("click", function () {
-                    const current = document.body.getAttribute("data-theme");
-                    const next = current === "dark" ? "light" : "dark";
-
+                    const next = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
                     document.body.setAttribute("data-theme", next);
                     localStorage.setItem("theme", next);
+                    if (icon) icon.innerHTML = next === "dark" ? "&#9728;" : "&#9790;";
                 });
-            }
-
-            const savedTheme = localStorage.getItem("theme");
-            if (savedTheme) {
-                document.body.setAttribute("data-theme", savedTheme);
             }
         });
     </script>
