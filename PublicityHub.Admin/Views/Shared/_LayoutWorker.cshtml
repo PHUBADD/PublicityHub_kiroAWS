@@ -6,83 +6,299 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <style>
+        /* =========================================
+           CSS VARIABLES — light & dark
+        ========================================= */
         :root {
-            --bg-main: #f7fafc;
-            --text-main: #0f172a;
+            --bg-main:        #f0f4f8;
+            --bg-card:        #ffffff;
+            --bg-card-available:    #f0f9ff;
+            --bg-card-accepted:     #fffbeb;
+            --bg-card-submitted:    #f5f3ff;
+            --bg-card-approved:     #ecfdf5;
+            --border-available:  #2563eb;
+            --border-accepted:   #f59e0b;
+            --border-submitted:  #7c3aed;
+            --border-approved:   #16a34a;
+            --text-main:      #0f172a;
+            --text-muted:     #6b7280;
+            --text-card:      #111827;
+            --step-bg:        #e5e7eb;
+            --step-text:      #374151;
+            --badge-border:   #d1d5db;
         }
 
         body[data-theme="dark"] {
-            --bg-main: #020617;
-            --text-main: #e5e7eb;
+            --bg-main:        #0f172a;
+            --bg-card:        #1e293b;
+            --bg-card-available:    #1e3a5f;
+            --bg-card-accepted:     #3b2a0a;
+            --bg-card-submitted:    #2e1a5e;
+            --bg-card-approved:     #0f3320;
+            --border-available:  #3b82f6;
+            --border-accepted:   #f59e0b;
+            --border-submitted:  #a78bfa;
+            --border-approved:   #34d399;
+            --text-main:      #f1f5f9;
+            --text-muted:     #94a3b8;
+            --text-card:      #e2e8f0;
+            --step-bg:        #334155;
+            --step-text:      #cbd5e1;
+            --badge-border:   #475569;
         }
+
+        /* =========================================
+           BASE
+        ========================================= */
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
             margin: 0;
-            font-family: Arial, system-ui, sans-serif;
+            font-family: 'Segoe UI', Arial, system-ui, sans-serif;
             background: var(--bg-main);
             color: var(--text-main);
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* ? HEADER (same style as admin) */
+        /* =========================================
+           HEADER
+        ========================================= */
         .worker-header {
             display: flex;
             align-items: center;
-            background: #1f2937;
-            padding: 15px 25px;
+            background: #111827;
+            padding: 14px 28px;
             color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .logo {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 18px;
+            letter-spacing: 0.3px;
         }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
             margin-left: 40px;
             flex-grow: 1;
         }
 
-            .nav-links a {
-                color: #e5e7eb;
-                text-decoration: none;
-                font-weight: 500;
-            }
-
-                .nav-links a:hover {
-                    text-decoration: underline;
-                }
-
-        /* ? BUTTON STYLE (same feel as admin) */
-        .action-btn {
-            background: none;
-            border: 1px solid #94a3b8;
-            border-radius: 6px;
-            padding: 6px 12px;
-            cursor: pointer;
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
             font-size: 14px;
-            color: white;
-            margin-left: 10px;
+            transition: color 0.2s;
         }
 
-            .action-btn:hover {
-                background: rgba(255,255,255,0.1);
-            }
+        .nav-links a:hover { color: #ffffff; }
 
-        /* ? MAIN CONTENT */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #workerName {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #e2e8f0;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: #94a3b8;
+        }
+
+        /* =========================================
+           MAIN CONTENT
+        ========================================= */
         .container {
-            max-width: 1100px;
-            margin: auto;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* =========================================
+           WORKER CARDS — use CSS variables
+        ========================================= */
+        .worker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .worker-card {
+            background: var(--bg-card);
+            color: var(--text-card);
+            border-radius: 14px;
             padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border-left: 5px solid var(--badge-border);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .worker-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+
+        .worker-card.available  { background: var(--bg-card-available);  border-left-color: var(--border-available); }
+        .worker-card.accepted   { background: var(--bg-card-accepted);   border-left-color: var(--border-accepted); }
+        .worker-card.proofsubmitted { background: var(--bg-card-submitted); border-left-color: var(--border-submitted); }
+        .worker-card.approved   { background: var(--bg-card-approved);   border-left-color: var(--border-approved); }
+
+        .worker-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: var(--text-card);
+        }
+
+        .worker-card p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           STATUS BADGE
+        ========================================= */
+        .status-badge {
+            display: inline-block;
+            margin: 8px 0;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.available    { background: #dbeafe; color: #1d4ed8; }
+        .status-badge.accepted     { background: #fef3c7; color: #92400e; }
+        .status-badge.proofsubmitted { background: #ede9fe; color: #5b21b6; }
+        .status-badge.approved     { background: #d1fae5; color: #065f46; }
+
+        body[data-theme="dark"] .status-badge.available    { background: #1e3a5f; color: #93c5fd; }
+        body[data-theme="dark"] .status-badge.accepted     { background: #3b2a0a; color: #fcd34d; }
+        body[data-theme="dark"] .status-badge.proofsubmitted { background: #2e1a5e; color: #c4b5fd; }
+        body[data-theme="dark"] .status-badge.approved     { background: #0f3320; color: #6ee7b7; }
+
+        /* =========================================
+           PROGRESS BAR
+        ========================================= */
+        .progress-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 12px 0;
+            width: 100%;
+        }
+
+        .step {
+            flex: 1 1 60px;
+            padding: 5px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            background: var(--step-bg);
+            color: var(--step-text);
+            border-radius: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background 0.2s;
+        }
+
+        .step.done   { background: #16a34a; color: #fff; }
+        .step.active { background: #2563eb; color: #fff; }
+
+        body[data-theme="dark"] .step.done   { background: #15803d; }
+        body[data-theme="dark"] .step.active { background: #1d4ed8; }
+
+        /* =========================================
+           ACTION BUTTONS
+        ========================================= */
+        .actions { margin-top: 12px; }
+
+        .hint { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+
+        .btn {
+            padding: 9px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn.primary { background: #2563eb; color: #fff; }
+        .btn.success { background: #16a34a; color: #fff; }
+
+        .success-text { color: #16a34a; font-weight: 700; font-size: 14px; }
+        body[data-theme="dark"] .success-text { color: #34d399; }
+
+        /* =========================================
+           EMPTY STATE
+        ========================================= */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state h3 { font-size: 20px; margin-bottom: 8px; }
+
+        /* =========================================
+           TOAST
+        ========================================= */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #16a34a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .toast.show { opacity: 1; }
+
+        /* =========================================
+           PAGE TITLE
+        ========================================= */
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-main);
         }
     </style>
 </head>
 
 <body data-theme="light">
 
-    <!-- ? HEADER -->
     <header class="worker-header">
         <div class="logo">PublicityHub Worker</div>
 
@@ -90,42 +306,37 @@
             <a href="/Worker/Dashboard">My Jobs</a>
         </nav>
 
-        <div style="display:flex; align-items:center; gap:8px;">
-            <span id="workerName" style="color:#d1d5db; font-size:14px;"></span>
-            <button id="themeToggle" class="action-btn" title="Toggle dark/light mode">&#127769; / &#9728;&#65039;</button>
+        <div class="header-right">
+            <span id="workerName"></span>
+            <button id="themeToggle" class="action-btn" title="Toggle dark/light mode">🌙 / ☀️</button>
             <button onclick="logout()" class="action-btn">Logout</button>
         </div>
     </header>
 
-    <!-- ? MAIN CONTENT -->
     <div class="container">
         @RenderBody()
     </div>
 
     <script src="/js/api.js"></script>
 
-    <!-- ? THEME + LOGOUT -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            // ? Theme Toggle
-            const btn = document.getElementById("themeToggle");
+            // Apply saved theme immediately
+            const savedTheme = localStorage.getItem("theme") || "light";
+            document.body.setAttribute("data-theme", savedTheme);
 
+            // Theme toggle
+            const btn = document.getElementById("themeToggle");
             if (btn) {
                 btn.addEventListener("click", function () {
-                    const current = document.body.getAttribute("data-theme");
-                    const next = current === "dark" ? "light" : "dark";
+                    const next = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
                     document.body.setAttribute("data-theme", next);
                     localStorage.setItem("theme", next);
                 });
             }
 
-            const savedTheme = localStorage.getItem("theme");
-            if (savedTheme) {
-                document.body.setAttribute("data-theme", savedTheme);
-            }
-
-            // Token validation + show worker name
+            // Token validation + worker name
             const token = localStorage.getItem("token");
 
             if (!token || token === "null" || token === "undefined" || token.trim() === "") {
@@ -137,11 +348,8 @@
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
                 const name = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
-                          || payload["name"]
-                          || payload["unique_name"]
-                          || "";
+                          || payload["name"] || payload["unique_name"] || "";
 
-                // Show worker name in header
                 const nameEl = document.getElementById("workerName");
                 if (nameEl && name) nameEl.innerText = "👷 " + name;
 
@@ -158,6 +366,5 @@
             window.location.href = "/Account/Login";
         }
     </script>
-
 </body>
 </html>

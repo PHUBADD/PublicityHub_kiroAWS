@@ -5,23 +5,100 @@
     <title>PublicityHub Admin</title>
 
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
         :root {
-            --bg-main: #f7fafc;
-            --text-main: #0f172a;
-            --card-bg: #ffffff;
+            --bg-main:    #f0f4f8;
+            --text-main:  #0f172a;
+            --text-muted: #6b7280;
+            --card-bg:    #ffffff;
+            --card-border:#e5e7eb;
+            --input-bg:   #ffffff;
+            --input-border:#d1d5db;
+            --badge-gray: #f3f4f6;
         }
 
         body[data-theme="dark"] {
-            --bg-main: #020617;
-            --text-main: #e5e7eb;
-            --card-bg: #0f172a;
+            --bg-main:    #0f172a;
+            --text-main:  #f1f5f9;
+            --text-muted: #94a3b8;
+            --card-bg:    #1e293b;
+            --card-border:#334155;
+            --input-bg:   #1e293b;
+            --input-border:#475569;
+            --badge-gray: #334155;
         }
 
         body {
-            font-family: Arial, system-ui, sans-serif;
+            font-family: 'Segoe UI', Arial, system-ui, sans-serif;
             background: var(--bg-main);
             color: var(--text-main);
             margin: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ── Dark mode: campaign cards ── */
+        body[data-theme="dark"] .campaign-card {
+            background: var(--card-bg) !important;
+            color: var(--text-main) !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+        }
+
+        body[data-theme="dark"] .campaign-card h3,
+        body[data-theme="dark"] .campaign-card p,
+        body[data-theme="dark"] .campaign-card strong {
+            color: var(--text-main) !important;
+        }
+
+        body[data-theme="dark"] .status-badge.draft       { background: #374151 !important; color: #d1d5db !important; }
+        body[data-theme="dark"] .status-badge.published   { background: #1e3a5f !important; color: #93c5fd !important; }
+        body[data-theme="dark"] .status-badge.inexecution { background: #3b2a0a !important; color: #fcd34d !important; }
+        body[data-theme="dark"] .status-badge.completed   { background: #0f3320 !important; color: #6ee7b7 !important; }
+        body[data-theme="dark"] .status-badge.closed      { background: #3b0f0f !important; color: #fca5a5 !important; }
+
+        body[data-theme="dark"] .badge.success { background: #0f3320 !important; color: #6ee7b7 !important; }
+        body[data-theme="dark"] .badge.closed  { background: #3b0f0f !important; color: #fca5a5 !important; }
+
+        body[data-theme="dark"] .btn.publish  { background: #1d4ed8 !important; }
+        body[data-theme="dark"] .btn.complete { background: #15803d !important; }
+        body[data-theme="dark"] .btn.close    { background: #b91c1c !important; }
+        body[data-theme="dark"] .btn.assign   { background: #1d4ed8 !important; }
+        body[data-theme="dark"] .btn.disabled { background: #334155 !important; color: #64748b !important; }
+
+        body[data-theme="dark"] .proof-link { color: #60a5fa !important; }
+
+        /* ── Dark mode: proof cards ── */
+        body[data-theme="dark"] .proof-card {
+            background: var(--card-bg) !important;
+            color: var(--text-main) !important;
+        }
+
+        /* ── Dark mode: forms / inputs ── */
+        body[data-theme="dark"] input,
+        body[data-theme="dark"] textarea,
+        body[data-theme="dark"] select {
+            background: var(--input-bg) !important;
+            color: var(--text-main) !important;
+            border-color: var(--input-border) !important;
+        }
+
+        body[data-theme="dark"] .create-card,
+        body[data-theme="dark"] .assign-card,
+        body[data-theme="dark"] .upload-card,
+        body[data-theme="dark"] .proof-form {
+            background: var(--card-bg) !important;
+            color: var(--text-main) !important;
+        }
+
+        body[data-theme="dark"] label,
+        body[data-theme="dark"] .form-group label {
+            color: var(--text-main) !important;
+        }
+
+        /* ── Dark mode: success box ── */
+        body[data-theme="dark"] .success-box {
+            background: #0f3320;
+            color: #6ee7b7;
         }
 
         .admin-header {
@@ -117,6 +194,14 @@
         </div>
 
     </header>
+
+    <!-- Apply saved theme IMMEDIATELY to prevent flash -->
+    <script>
+        (function() {
+            const t = localStorage.getItem("theme");
+            if (t) document.body.setAttribute("data-theme", t);
+        })();
+    </script>
 
     @if (TempData["Success"] != null)
     {

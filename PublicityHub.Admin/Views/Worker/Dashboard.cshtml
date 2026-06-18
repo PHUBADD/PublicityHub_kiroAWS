@@ -16,7 +16,7 @@
 
         const token = localStorage.getItem("token");
         if (!token) {
-            container.innerHTML = "<p>❌ Not logged in. Please <a href='/Auth/Login'>login</a>.</p>";
+            container.innerHTML = "<p>Not logged in. Please <a href='/Account/Login'>login</a>.</p>";
             return;
         }
 
@@ -24,15 +24,11 @@
         const workerId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
 
         if (!workerId) {
-            container.innerHTML = "<p>❌ Worker ID not found in token.</p>";
+            container.innerHTML = "<p>Worker ID not found in token.</p>";
             return;
         }
 
-        // ✅ apiFetch handles local vs production automatically
-        apiFetch(`/api/jobassignments/worker/${workerId}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" }
-        })
+        apiFetch(`/api/jobassignments/worker/${workerId}`)
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
@@ -41,71 +37,73 @@
                 if (!jobs || jobs.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
+                            <div style="font-size:48px;margin-bottom:12px;">📋</div>
                             <h3>No jobs assigned yet</h3>
-                            <p>🕒 Please wait. New tasks will appear here soon.</p>
-                        </div>
-                    `;
+                            <p>Please wait. New tasks will appear here soon.</p>
+                        </div>`;
                     return;
                 }
 
                 let html = `<div class="worker-grid">`;
                 jobs.forEach(job => {
+                    const s = job.status.toLowerCase();
+
+                    // Progress steps — mark done/active
+                    const steps = [
+                        { label: "Assigned",  states: ["available","accepted","proofsubmitted","approved"] },
+                        { label: "Accepted",  states: ["accepted","proofsubmitted","approved"] },
+                        { label: "Submitted", states: ["proofsubmitted","approved"] },
+                        { label: "Approved",  states: ["approved"] }
+                    ];
+
+                    const progressHtml = steps.map(step => {
+                        const isDone   = step.states.includes(s);
+                        const isActive = step.label.toLowerCase().replace("submitted","proofsubmitted") === s
+                                      || (step.label === "Submitted" && s === "proofsubmitted")
+                                      || (step.label === "Assigned"  && s === "available")
+                                      || (step.label === "Accepted"  && s === "accepted")
+                                      || (step.label === "Approved"  && s === "approved");
+                        const cls = isActive ? "step active" : isDone ? "step done" : "step";
+                        return `<div class="${cls}">${step.label}</div>`;
+                    }).join("");
+
                     html += `
-                    <div class="worker-card ${job.status.toLowerCase()}">
-                        <h3>${job.campaignTitle}</h3>
+                    <div class="worker-card ${s}">
+                        <h3>${job.campaignTitle ?? "Campaign"}</h3>
                         <p>💰 Payment: ₹${job.amount}</p>
-                        <p>📍 Location: ${job.location}</p>
+                        <p>📍 Location: ${job.location ?? "—"}</p>
 
-                        <span class="status-badge ${job.status.toLowerCase()}">
-                            ${job.status}
-                        </span>
+                        <span class="status-badge ${s}">${job.status}</span>
 
-                        <div class="progress-bar">
-                            <div class="step ${['Available','Accepted','ProofSubmitted','Approved'].includes(job.status) ? 'done' : ''} ${job.status === 'Available' ? 'active' : ''}">Assigned</div>
-                            <div class="step ${['Accepted','ProofSubmitted','Approved'].includes(job.status) ? 'done' : ''} ${job.status === 'Accepted' ? 'active' : ''}">Accepted</div>
-                            <div class="step ${['ProofSubmitted','Approved'].includes(job.status) ? 'done' : ''} ${job.status === 'ProofSubmitted' ? 'active' : ''}">Submitted</div>
-                            <div class="step ${job.status === 'Approved' ? 'done active' : ''}">Approved</div>
-                        </div>
+                        <div class="progress-bar">${progressHtml}</div>
 
-                        <div class="actions">
-                            ${renderActions(job)}
-                        </div>
-                    </div>
-                    `;
+                        <div class="actions">${renderActions(job)}</div>
+                    </div>`;
                 });
                 html += `</div>`;
                 container.innerHTML = html;
             })
             .catch(err => {
-                container.innerHTML = `<p>❌ Failed to load jobs: ${err.message}</p>`;
-                console.error(err);
+                container.innerHTML = `<p style="color:#ef4444">Failed to load jobs: ${err.message}</p>`;
             });
     });
 
     function renderActions(job) {
         if (job.status === "Available") {
-            return `
-                    <p class="hint">👉 Accept this job to begin work</p>
-                    <button class="btn primary" onclick="accept(${job.assignmentId}, this)">Accept Job</button>
-                `;
+            return `<p class="hint">👉 Accept this job to begin work</p>
+                    <button class="btn primary" onclick="accept(${job.assignmentId}, this)">Accept Job</button>`;
         }
         if (job.status === "Accepted") {
-            return `
-                    <p class="hint">✅ Complete and upload proof</p>
-                    <button class="btn success" onclick="complete(${job.assignmentId}, this)">Mark Completed</button>
-                `;
+            return `<p class="hint">📸 Complete work and upload proof</p>
+                    <button class="btn success" onclick="goUpload(${job.assignmentId})">Upload Proof</button>`;
         }
         if (job.status === "ProofSubmitted") {
-            return `
-                    <p class="hint">📤 Waiting for admin approval</p>
-                    <span class="success-text">Submitted ✅</span>
-                `;
+            return `<p class="hint">📤 Waiting for admin approval</p>
+                    <span class="success-text">Submitted ✅</span>`;
         }
         if (job.status === "Approved") {
-            return `
-                    <p class="hint">🎉 Approved</p>
-                    <span class="success-text">Approved ✅</span>
-                `;
+            return `<p class="hint">🎉 Work approved</p>
+                    <span class="success-text">Approved ✅</span>`;
         }
         return "";
     }
@@ -114,12 +112,11 @@
         btn.disabled = true;
         btn.innerText = "Processing...";
 
-        // ✅ apiFetch — works on localhost and render.com
         apiFetch(`/api/jobassignments/${id}/accept`, { method: "POST" })
             .then(res => {
                 if (!res.ok) throw new Error("Failed to accept");
-                showToast("✅ Job Accepted");
-                setTimeout(() => location.reload(), 800);
+                showToast("✅ Job Accepted!");
+                setTimeout(() => location.reload(), 900);
             })
             .catch(err => {
                 alert("❌ " + err.message);
@@ -128,7 +125,7 @@
             });
     }
 
-    function complete(id, btn) {
+    function goUpload(id) {
         window.location.href = `/Worker/UploadProof/${id}`;
     }
 
@@ -139,180 +136,3 @@
         setTimeout(() => toast.classList.remove("show"), 2500);
     }
 </script>
-
-
-
-<style>
-    .worker-card {
-        padding: 16px;
-    }
-
-        .worker-card p {
-            margin: 4px 0;
-        }
-
-    .hint {
-        font-size: 13px;
-        color: #6b7280;
-    }
-
-    .progress-bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin: 10px 0;
-        width: 100%;
-    }
-
-    .step {
-        flex: 1 1 auto;
-        min-width: 60px;
-        padding: 5px 4px;
-        font-size: 11px;
-        text-align: center;
-        background: #e5e7eb;
-        border-radius: 6px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-        .step.active {
-            background: #2563eb;
-            color: white;
-        }
-
-    .step.done {
-        background: #16a34a;
-        color: white;
-    }
-    .toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #16a34a;
-        color: white;
-        padding: 12px 18px;
-        border-radius: 8px;
-        font-size: 14px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        z-index: 9999;
-    }
-
-        .toast.show {
-            opacity: 1;
-        }
-
-    .page-title {
-        margin-bottom: 20px;
-    }
-
-    .empty-text {
-        color: #6b7280;
-    }
-
-    .worker-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 20px;
-    }
-
-    .worker-card {
-        padding: 18px;
-        border-radius: 14px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        transition: transform 0.2s ease;
-        border-left: 6px solid transparent;
-        box-sizing: border-box;
-        overflow: hidden;
-        word-break: break-word;
-    }
-
-/* ✅ STATUS COLORS FOR CARDS */
-.worker-card.available {
-    background: #f0f9ff;
-    border-left-color: #2563eb;
-}
-
-.worker-card.accepted {
-    background: #fffbeb;
-    border-left-color: #f59e0b;
-}
-
-.worker-card.proofsubmitted {
-    background: #f5f3ff;
-    border-left-color: #7c3aed;
-}
-
-.worker-card.approved {
-    background: #ecfdf5;
-    border-left-color: #16a34a;
-}
-
-/* ✅ Hover effect */
-.worker-card:hover {
-    transform: translateY(-4px);
-}
-
-
-    .status-badge {
-        display: inline-block;
-        margin: 8px 0;
-        padding: 4px 10px;
-        font-size: 12px;
-        border-radius: 999px;
-        text-transform: uppercase;
-    }
-
-        .status-badge.available {
-            background: #e0f2fe;
-            color: #0369a1;
-        }
-
-        .status-badge.accepted {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-badge.proofsubmitted {
-            background: #ede9fe;
-            color: #5b21b6;
-        }
-
-        .status-badge.approved {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-    .actions {
-        margin-top: 10px;
-    }
-
-    .btn {
-        padding: 8px 14px;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-    }
-
-        .btn.primary {
-            background: #2563eb;
-            color: white;
-        }
-
-        .btn.success {
-            background: #16a34a;
-            color: white;
-        }
-
-    .hint {
-        font-size: 13px;
-        color: #6b7280;
-    }
-
-    .success-text {
-        color: #16a34a;
-        font-weight: 600;
-    }
-</style>
