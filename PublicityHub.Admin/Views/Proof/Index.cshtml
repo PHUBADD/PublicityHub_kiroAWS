@@ -1,56 +1,475 @@
 ﻿@model List<ProofViewModel>
-@{ Layout = "_Layout"; }
-
-<h2 class="page-title">All Proofs</h2>
-
-@if (!Model.Any())
-{
-    <p class="empty-text">No proofs available.</p>
+@{
+    Layout = "_Layout";
 }
-else
-{
-    <div class="proof-grid">
-        @foreach (var proof in Model)
-        {
-            <div class="proof-card">
-                <div class="proof-image">
-                    <img src="@proof.ImageUrl" alt="Proof" onerror="this.src='/img/placeholder.png'" />
-                </div>
-                <div class="proof-meta">
-                    <p><strong>Proof #@proof.Id</strong></p>
-                    <p>Assignment: @proof.AssignmentId</p>
-                    <span class="status-badge @proof.Status.ToLower()">@proof.Status</span>
-                </div>
-                @if (proof.Status == "UnderReview")
-                {
-                    <div class="proof-actions">
-                        <form method="post" asp-action="Approve" asp-route-id="@proof.Id" style="display:inline">
-                            <button type="submit" class="btn approve">✅ Approve</button>
-                        </form>
-                        <form method="post" asp-action="Reject" asp-route-id="@proof.Id" style="display:inline">
-                            <button type="submit" class="btn reject">❌ Reject</button>
-                        </form>
-                    </div>
-                }
-            </div>
-        }
+
+<div class="proof-page">
+
+    <div class="proof-page-header">
+        <div>
+            <h2 class="page-title">All Proofs</h2>
+            <p class="page-sub">Review and approve field campaign proofs</p>
+        </div>
+        <div class="proof-stats" id="proofStats"></div>
     </div>
-}
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert-error">@ViewBag.Error</div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-success">@TempData["Success"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-error">@TempData["Error"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3;margin-bottom:16px">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+            </svg>
+            <h3>No proofs available</h3>
+            <p>Proofs uploaded by workers will appear here for review.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Filter tabs -->
+        <div class="filter-tabs">
+            <button class="tab active" onclick="filterProofs('all', this)">All</button>
+            <button class="tab" onclick="filterProofs('underreview', this)">Pending Review</button>
+            <button class="tab" onclick="filterProofs('approved', this)">Approved</button>
+            <button class="tab" onclick="filterProofs('rejected', this)">Rejected</button>
+        </div>
+
+        <div class="proof-grid" id="proofGrid">
+            @foreach (var proof in Model)
+            {
+                <div class="proof-card" data-status="@proof.Status.ToLower()">
+
+                    <!-- Image -->
+                    <div class="proof-img-wrap">
+                        <img src="@proof.ImageUrl"
+                             alt="Proof @proof.Id"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                        <div class="img-fallback" style="display:none">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                            <span>No image</span>
+                        </div>
+                        <span class="img-badge @proof.Status.ToLower()">@proof.Status</span>
+                    </div>
+
+                    <!-- Meta -->
+                    <div class="proof-body">
+                        <div class="proof-id">Proof #@proof.Id</div>
+                        <div class="proof-meta-row">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
+                            Assignment #@proof.AssignmentId
+                        </div>
+                        @if (proof.UploadedAt != default)
+                        {
+                            <div class="proof-meta-row">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                @proof.UploadedAt.ToString("dd MMM yyyy, HH:mm")
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Actions (only for UnderReview) -->
+                    @if (proof.Status == "UnderReview")
+                    {
+                        <div class="proof-actions">
+                            <form method="post" asp-action="Approve" asp-route-id="@proof.Id">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="action-btn approve-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                    Approve
+                                </button>
+                            </form>
+                            <form method="post" asp-action="Reject" asp-route-id="@proof.Id">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="action-btn reject-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                    Reject
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="proof-status-final @proof.Status.ToLower()">
+                            @if (proof.Status == "Approved")
+                            {
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                <span>Approved</span>
+                            }
+                            else
+                            {
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                <span>Rejected</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    // Build stats
+    const cards = document.querySelectorAll(".proof-card");
+    const total = cards.length;
+    const pending  = [...cards].filter(c => c.dataset.status === "underreview").length;
+    const approved = [...cards].filter(c => c.dataset.status === "approved").length;
+    const rejected = [...cards].filter(c => c.dataset.status === "rejected").length;
+
+    document.getElementById("proofStats").innerHTML = `
+        <span class="stat-chip total">${total} Total</span>
+        <span class="stat-chip pending">${pending} Pending</span>
+        <span class="stat-chip approved">${approved} Approved</span>
+        <span class="stat-chip rejected">${rejected} Rejected</span>
+    `;
+
+    function filterProofs(status, btn) {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        cards.forEach(c => {
+            c.style.display = (status === "all" || c.dataset.status === status) ? "" : "none";
+        });
+    }
+</script>
 
 <style>
-    .page-title { margin-bottom: 20px; }
-    .empty-text { color: #6b7280; }
-    .proof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-top: 20px; }
-    .proof-card { background: white; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-    .proof-image { width: 100%; height: 160px; overflow: hidden; border-radius: 8px; background: #f3f4f6; }
-    .proof-image img { width: 100%; height: 100%; object-fit: cover; }
-    .proof-meta p { margin: 3px 0; font-size: 13px; }
-    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
-    .status-badge.underreview { background: #fef3c7; color: #92400e; }
-    .status-badge.approved { background: #dcfce7; color: #166534; }
-    .status-badge.rejected { background: #fee2e2; color: #991b1b; }
-    .proof-actions { display: flex; gap: 8px; }
-    .btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
-    .btn.approve { background: #16a34a; color: white; }
-    .btn.reject { background: #dc2626; color: white; }
+    .proof-page {
+        padding: 24px 0;
+    }
+
+    .proof-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 4px;
+        color: var(--text-main);
+    }
+
+    .page-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    /* Stat chips */
+    .proof-stats {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .stat-chip {
+        padding: 5px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+        .stat-chip.total {
+            background: var(--badge-gray);
+            color: var(--text-main);
+        }
+
+        .stat-chip.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stat-chip.approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .stat-chip.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    body[data-theme="dark"] .stat-chip.pending {
+        background: #3b2a0a;
+        color: #fcd34d;
+    }
+
+    body[data-theme="dark"] .stat-chip.approved {
+        background: #0f3320;
+        color: #6ee7b7;
+    }
+
+    body[data-theme="dark"] .stat-chip.rejected {
+        background: #3b0f0f;
+        color: #fca5a5;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        padding: 7px 18px;
+        border-radius: 8px;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.18s;
+    }
+
+        .tab.active {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+
+        .tab:hover:not(.active) {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+    /* Grid */
+    .proof-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+    }
+
+    /* Card */
+    .proof-card {
+        background: var(--card-bg);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+        border: 1px solid var(--card-border);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.18s, box-shadow 0.18s;
+    }
+
+        .proof-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+    /* Image */
+    .proof-img-wrap {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        background: var(--badge-gray);
+        overflow: hidden;
+    }
+
+        .proof-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .img-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+
+    .img-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+        .img-badge.underreview {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .img-badge.approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .img-badge.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    body[data-theme="dark"] .img-badge.underreview {
+        background: #3b2a0a;
+        color: #fcd34d;
+    }
+
+    body[data-theme="dark"] .img-badge.approved {
+        background: #0f3320;
+        color: #6ee7b7;
+    }
+
+    body[data-theme="dark"] .img-badge.rejected {
+        background: #3b0f0f;
+        color: #fca5a5;
+    }
+
+    /* Body */
+    .proof-body {
+        padding: 14px 14px 10px;
+        flex: 1;
+    }
+
+    .proof-id {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-main);
+    }
+
+    .proof-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 5px;
+    }
+
+    /* Actions */
+    .proof-actions {
+        display: flex;
+        gap: 8px;
+        padding: 0 14px 14px;
+    }
+
+    .action-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 8px;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.18s, transform 0.12s;
+    }
+
+        .action-btn:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+    .approve-btn {
+        background: #16a34a;
+        color: #fff;
+    }
+
+    .reject-btn {
+        background: #dc2626;
+        color: #fff;
+    }
+
+    .proof-status-final {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 14px 14px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+        .proof-status-final.approved {
+            color: #16a34a;
+        }
+
+        .proof-status-final.rejected {
+            color: #dc2626;
+        }
+
+    /* Empty */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-muted);
+    }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+    /* Alerts */
+    .alert-error, .alert-success {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+
+    .alert-success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+    }
+
+    body[data-theme="dark"] .alert-error {
+        background: #3b0f0f;
+        color: #fca5a5;
+    }
+
+    body[data-theme="dark"] .alert-success {
+        background: #0f3320;
+        color: #6ee7b7;
+    }
 </style>
