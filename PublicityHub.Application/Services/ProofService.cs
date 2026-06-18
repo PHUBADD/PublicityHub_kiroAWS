@@ -4,13 +4,11 @@ using PublicityHub.Application.Guards;
 using PublicityHub.Domain.Entities;
 using PublicityHub.Infrastructure.Data;
 using PublicityHub.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
+
 public class ProofService : IProofService
 {
-    
     private readonly ICampaignService _campaignService;
     private readonly AppDbContext _context;
-
 
     public ProofService(
         AppDbContext context,
@@ -20,14 +18,9 @@ public class ProofService : IProofService
         _campaignService = campaignService;
     }
 
-
-
     // =========================
     // UPLOAD PROOF
     // =========================
-    // Purpose:
-    // Worker/Admin uploads proof.
-    // Immediately moves to UnderReview.
     public async Task<ProofDto> UploadAsync(CreateProofDto dto)
     {
         var proof = new Proof
@@ -48,12 +41,44 @@ public class ProofService : IProofService
         return Map(proof);
     }
 
+    // =========================
+    // GET ALL PROOFS
+    // =========================
+    public async Task<List<ProofDto>> GetAllAsync()
+    {
+        var proofs = await _context.Proofs.ToListAsync();
+        return proofs.Select(Map).ToList();
+    }
+
+    // =========================
+    // SUBMIT PROOF (combined: upload + set assignment ProofSubmitted)
+    // =========================
+    public async Task SubmitProofAsync(int assignmentId, string imageUrl, decimal? latitude, decimal? longitude)
+    {
+        var assignment = await _context.JobAssignments.FindAsync(assignmentId)
+            ?? throw new Exception("Assignment not found");
+
+        var existing = await _context.Proofs.FirstOrDefaultAsync(p => p.AssignmentId == assignmentId);
+        if (existing != null)
+            throw new InvalidOperationException("Proof already submitted for this assignment");
+
+        var proof = new Proof
+        {
+            AssignmentId = assignmentId,
+            ImageUrl = imageUrl,
+            Latitude = latitude,
+            Longitude = longitude,
+            UploadedAt = DateTime.UtcNow,
+            Status = ProofStatus.UnderReview
+        };
+
+        _context.Proofs.Add(proof);
+        ChangeAssignmentStatus(assignment, AssignmentStatus.ProofSubmitted);
+        await _context.SaveChangesAsync();
+    }
 
     /// <summary>
     /// Admin approves a proof.
-    /// Business Meaning:
-    /// - Proof is valid
-    /// - Assignment is approved
     /// </summary>
     public async Task ApproveAsync(int proofId)
     {
@@ -63,18 +88,13 @@ public class ProofService : IProofService
             .FirstOrDefaultAsync(p => p.Id == proofId)
             ?? throw new Exception("Proof not found");
 
-        // ✅ Approve proof
         proof.Status = ProofStatus.Approved;
         proof.ReviewedAt = DateTime.UtcNow;
-
-        // ✅ Approve assignment
         proof.JobAssignment.Status = AssignmentStatus.Approved;
 
         await _context.SaveChangesAsync();
 
-        // ✅ Auto-complete campaign if all assignments approved
         var campaign = proof.JobAssignment.Campaign;
-
         if (await _campaignService.CanCompleteCampaignAsync(campaign.Id))
         {
             campaign.Status = CampaignStatus.Completed;
@@ -85,9 +105,6 @@ public class ProofService : IProofService
 
     /// <summary>
     /// Admin rejects a proof.
-    /// Business Meaning:
-    /// - Proof is invalid
-    /// - Assignment must be reassigned
     /// </summary>
     public async Task RejectAsync(int proofId)
     {
@@ -96,25 +113,17 @@ public class ProofService : IProofService
             .FirstOrDefaultAsync(p => p.Id == proofId)
             ?? throw new Exception("Proof not found");
 
-        // Reject proof
         proof.Status = ProofStatus.Rejected;
-
-        // ✅ Force assignment reset
         var assignment = proof.JobAssignment;
         assignment.Status = AssignmentStatus.Accepted;
-
-        _context.JobAssignments.Update(assignment);   // ✅ THIS IS THE KEY LINE
+        _context.JobAssignments.Update(assignment);
 
         await _context.SaveChangesAsync();
     }
 
-
-
     // =========================
-    // READ-ONLY: GET BY ASSIGNMENT
+    // GET BY ASSIGNMENT
     // =========================
-    // Purpose:
-    // Used to check if proof exists for assignment.
     public async Task<ProofDto?> GetByAssignmentAsync(int assignmentId)
     {
         var proof = await _context.Proofs
@@ -124,7 +133,7 @@ public class ProofService : IProofService
     }
 
     // =========================
-    // INTERNAL GUARDED TRANSITION
+    // INTERNAL GUARDED TRANSITIONS
     // =========================
     public void ChangeStatus(Proof proof, ProofStatus newStatus)
     {
@@ -133,8 +142,17 @@ public class ProofService : IProofService
             throw new InvalidOperationException(
                 $"Invalid proof transition: {proof.Status} → {newStatus}");
         }
-
         proof.Status = newStatus;
+    }
+
+    private void ChangeAssignmentStatus(JobAssignment assignment, AssignmentStatus newStatus)
+    {
+        if (!AssignmentStatusGuard.CanTransition(assignment.Status, newStatus))
+        {
+            throw new InvalidOperationException(
+                $"Invalid assignment transition: {assignment.Status} → {newStatus}");
+        }
+        assignment.Status = newStatus;
     }
 
     private static ProofDto Map(Proof p) =>
@@ -145,37 +163,4 @@ public class ProofService : IProofService
             ImageUrl = p.ImageUrl,
             Status = p.Status.ToString()
         };
-
-    public async Task SubmitProofAsync(int assignmentId, string imageUrl)
-    {
-        var assignment = await _context.JobAssignments.FindAsync(assignmentId)
-            ?? throw new Exception("Assignment not found");
-
-        var proof = new Proof
-        {
-            AssignmentId = assignmentId,
-            ImageUrl = imageUrl,
-            UploadedAt = DateTime.UtcNow,
-            Status = ProofStatus.UnderReview  // FIX ENUM
-    };
-
-        _context.Proofs.Add(proof);
-
-        // ✅ USE GUARD (IMPORTANT)
-        ChangeAssignmentStatus(assignment, AssignmentStatus.ProofSubmitted);
-
-        await _context.SaveChangesAsync();
-    }
-    private void ChangeAssignmentStatus(JobAssignment assignment, AssignmentStatus newStatus)
-    {
-        if (!AssignmentStatusGuard.CanTransition(assignment.Status, newStatus))
-        {
-            throw new InvalidOperationException(
-                $"Invalid assignment transition: {assignment.Status} → {newStatus}");
-        }
-
-        assignment.Status = newStatus;
-    }
-
-
 }

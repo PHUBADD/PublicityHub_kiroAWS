@@ -79,7 +79,6 @@
     } else {
         assignBtn = "<a class='btn disabled full-btn'>👷 Assign Worker</a>";
     }
-    ``
 
         // ✅ FIXED Proof Link
         let proofLink = "<a class='proof-link' href='/Proof/ByCampaign/" + c.id + "'>View proofs →</a>";
@@ -129,11 +128,20 @@
     function closeCampaign(id, btn) {
         disable(btn);
 
+        const token = localStorage.getItem("token");
+        let userId = 1;
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                userId = parseInt(payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]) || 1;
+            } catch (e) {}
+        }
+
         apiFetch(`/api/Campaigns/${id}/close`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                closedBy: 1,
+                closedBy: userId,
                 reason: "Closed by provider"
             })
         }).then(() => location.reload());

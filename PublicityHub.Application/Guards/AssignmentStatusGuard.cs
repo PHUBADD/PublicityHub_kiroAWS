@@ -9,8 +9,12 @@ namespace PublicityHub.Application.Guards
         {
             return (from, to) switch
             {
+                // Seeding / activation transitions
+                (AssignmentStatus.Created, AssignmentStatus.Available) => true,
+
                 // Normal flow
                 (AssignmentStatus.Available, AssignmentStatus.Accepted) => true,
+                (AssignmentStatus.Available, AssignmentStatus.Rejected) => true,
                 (AssignmentStatus.Accepted, AssignmentStatus.ProofSubmitted) => true,
                 (AssignmentStatus.ProofSubmitted, AssignmentStatus.Approved) => true,
 

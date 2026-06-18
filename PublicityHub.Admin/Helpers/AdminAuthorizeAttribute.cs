@@ -7,7 +7,7 @@ public class AdminAuthorizeAttribute : ActionFilterAttribute
     {
         var httpContext = context.HttpContext;
 
-        var token = httpContext.Session.GetString("JWT");
+        var token = httpContext.Session.GetString("token");
         if (string.IsNullOrEmpty(token))
         {
             context.Result = new RedirectToActionResult(

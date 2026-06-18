@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>PublicityHub Worker</title>
@@ -23,7 +23,7 @@
             color: var(--text-main);
         }
 
-        /* ✅ HEADER (same style as admin) */
+        /* ? HEADER (same style as admin) */
         .worker-header {
             display: flex;
             align-items: center;
@@ -55,7 +55,7 @@
                     text-decoration: underline;
                 }
 
-        /* ✅ BUTTON STYLE (same feel as admin) */
+        /* ? BUTTON STYLE (same feel as admin) */
         .action-btn {
             background: none;
             border: 1px solid #94a3b8;
@@ -71,7 +71,7 @@
                 background: rgba(255,255,255,0.1);
             }
 
-        /* ✅ MAIN CONTENT */
+        /* ? MAIN CONTENT */
         .container {
             max-width: 1100px;
             margin: auto;
@@ -82,7 +82,7 @@
 
 <body data-theme="light">
 
-    <!-- ✅ HEADER -->
+    <!-- ? HEADER -->
     <header class="worker-header">
         <div class="logo">PublicityHub Worker</div>
 
@@ -91,24 +91,23 @@
         </nav>
 
         <div>
-            <button id="themeToggle" class="action-btn">🌙 / ☀️</button>
+            <button id="themeToggle" class="action-btn">?? / ??</button>
             <button onclick="logout()" class="action-btn">Logout</button>
         </div>
     </header>
 
-    <!-- ✅ MAIN CONTENT -->
+    <!-- ? MAIN CONTENT -->
     <div class="container">
         @RenderBody()
     </div>
 
-    <!-- ✅ API -->
     <script src="/js/api.js"></script>
 
-    <!-- ✅ THEME + LOGOUT -->
+    <!-- ? THEME + LOGOUT -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            // ✅ Theme Toggle
+            // ? Theme Toggle
             const btn = document.getElementById("themeToggle");
 
             if (btn) {
@@ -125,7 +124,7 @@
                 document.body.setAttribute("data-theme", savedTheme);
             }
 
-            // ✅ Token validation
+            // ? Token validation
             const token = localStorage.getItem("token");
 
             if (!token || token === "null" || token === "undefined" || token.trim() === "") {
@@ -153,4 +152,3 @@
 
 </body>
 </html>
-``

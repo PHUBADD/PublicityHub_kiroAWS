@@ -8,4 +8,8 @@ public interface IProofService
     Task RejectAsync(int proofId);
 
     Task<ProofDto?> GetByAssignmentAsync(int assignmentId);
+
+    Task<List<ProofDto>> GetAllAsync();
+
+    Task SubmitProofAsync(int assignmentId, string imageUrl, decimal? latitude, decimal? longitude);
 }

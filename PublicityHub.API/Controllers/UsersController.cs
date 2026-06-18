@@ -21,6 +21,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,admin")]
     public async Task<IActionResult> GetUsers()
     {
         var users = await _service.GetAllAsync();
@@ -56,6 +57,7 @@ public class UsersController : ControllerBase
     //        token = token
     //    });
     //}
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {

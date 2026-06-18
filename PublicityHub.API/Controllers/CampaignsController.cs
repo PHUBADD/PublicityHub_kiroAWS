@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PublicityHub.Application.DTOs.Campaigns;
 using PublicityHub.Application.Services;
 using PublicityHub.Domain.Enums;
-using Microsoft.AspNetCore.Mvc;
 
 namespace PublicityHub.API.Controllers;
 
@@ -19,13 +17,16 @@ public class CampaignsController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("all")]    //[Authorize(Roles = "Customer")]
+    [HttpGet("all")]
+    [Authorize]
     public async Task<IActionResult> Get()
     {
         var data = await _service.GetAllAsync();
         return Ok(data);
     }
+
     [HttpGet("by-user")]
+    [Authorize]
     public async Task<IActionResult> Get([FromQuery] int? userId)
     {
         var data = await _service.GetAllAsyncuser(userId);
@@ -33,26 +34,31 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpPost]
-    //[Authorize(Roles = "Customer")]
+    [Authorize]
     public async Task<IActionResult> Create(CreateCampaignDto dto)
     {
         var result = await _service.CreateAsync(dto);
         return Ok(result);
     }
+
     [HttpGet("proof-counts")]
+    [Authorize]
     public async Task<IActionResult> GetProofCounts()
     {
         var counts = await _service.GetProofCountsAsync();
         return Ok(counts);
     }
-    //joins JobAssignments + Proofs.
+
     [HttpGet("campaign/{campaignId}")]
+    [Authorize]
     public async Task<IActionResult> GetProofsByCampaign(int campaignId)
     {
         var proofs = await _service.GetProofsByCampaignAsync(campaignId);
         return Ok(proofs);
     }
+
     [HttpPost("{id}/publish")]
+    [Authorize(Roles = "Admin,admin")]
     public async Task<IActionResult> Publish(int id)
     {
         await _service.PublishAsync(id);
@@ -60,6 +66,7 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpPost("{id}/start")]
+    [Authorize(Roles = "Admin,admin")]
     public async Task<IActionResult> Start(int id)
     {
         await _service.StartExecutionAsync(id);
@@ -67,26 +74,26 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpPost("{id}/complete")]
+    [Authorize(Roles = "Admin,admin")]
     public async Task<IActionResult> Complete(int id)
     {
         await _service.CompleteAsync(id);
         return Ok();
     }
 
-
-    //audit
     [HttpPost("{id}/close")]
-    public async Task<IActionResult> Close(int id,[FromBody] CloseCampaignDto dto)
+    [Authorize]
+    public async Task<IActionResult> Close(int id, [FromBody] CloseCampaignDto dto)
     {
         await _service.CloseAsync(id, dto.ClosedBy, dto.Reason);
         return Ok();
     }
 
     [HttpGet("{id}/can-complete")]
+    [Authorize]
     public async Task<IActionResult> CanComplete(int id)
     {
         var canComplete = await _service.CanCompleteCampaignAsync(id);
         return Ok(new { canComplete });
     }
-
 }

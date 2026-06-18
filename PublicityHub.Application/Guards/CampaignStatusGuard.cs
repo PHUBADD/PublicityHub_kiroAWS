@@ -11,6 +11,9 @@ public static class CampaignStatusGuard
             // Normal lifecycle
             (CampaignStatus.Draft, CampaignStatus.Published) => true,
 
+            // Direct path when no partner/service order involved
+            (CampaignStatus.Published, CampaignStatus.InExecution) => true,
+
             (CampaignStatus.Published, CampaignStatus.PartnerInProgress) => true,
             (CampaignStatus.PartnerInProgress, CampaignStatus.ReadyForAssignment) => true,
             (CampaignStatus.ReadyForAssignment, CampaignStatus.InExecution) => true,

@@ -129,20 +129,7 @@
     }
 
     function complete(id, btn) {
-        btn.disabled = true;
-        btn.innerText = "Processing...";
-
-        // ✅ apiFetch — works on localhost and render.com
-        apiFetch(`/api/jobassignments/${id}/complete`, { method: "POST" })
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to complete");
-                window.location.href = `/Worker/UploadProof/${id}`;
-            })
-            .catch(err => {
-                alert("❌ " + err.message);
-                btn.disabled = false;
-                btn.innerText = "Mark Completed";
-            });
+        window.location.href = `/Worker/UploadProof/${id}`;
     }
 
     function showToast(message) {
@@ -169,7 +156,6 @@
         color: #6b7280;
     }
 
-    ``
     .progress-bar {
         display: flex;
         gap: 8px;

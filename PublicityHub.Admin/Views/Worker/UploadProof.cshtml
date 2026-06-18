@@ -1,88 +1,179 @@
 ﻿@{
-    Layout = "_Layout";
+    Layout = "_LayoutWorker";
 }
 
-<h2>Upload Proof</h2>
+<div class="upload-container">
+    <div class="upload-card">
+        <h2>📸 Upload Proof</h2>
+        <p class="subtitle">Submit photo evidence of your completed work</p>
 
-<div class="proof-form">
-    <label>Image URL</label>
-    <input type="text" id="imageUrl" placeholder="Paste image URL here" />
+        <div class="form-group">
+            <label>Select Image File</label>
+            <input type="file" id="imageFile" accept="image/*" onchange="previewImage(this)" />
+        </div>
 
-    <button class="btn submit" onclick="uploadProof(this)">
-        Submit Proof
-    </button>
+        <div id="preview-container" style="display:none; margin-bottom: 16px;">
+            <img id="imagePreview" src="" alt="Preview" style="max-width:100%; border-radius:8px; max-height:200px; object-fit:cover;" />
+        </div>
+
+        <div class="form-group">
+            <label>Or paste Image URL</label>
+            <input type="text" id="imageUrl" placeholder="https://example.com/photo.jpg" oninput="clearFile()" />
+        </div>
+
+        <div id="locationStatus" class="location-status">📍 Location: detecting...</div>
+
+        <button class="btn-submit" onclick="uploadProof(this)">
+            ✅ Submit Proof
+        </button>
+    </div>
 </div>
 
-
 <script>
-    // ✅ GLOBAL API BASE (Works for both local + production)
-    window.API_BASE = window.location.hostname === "localhost"
-        ? "https://localhost:7166"   // ✅ Local API
-        : "";                        // ✅ Production (NGINX handles /api)
+    let detectedLat = null;
+    let detectedLon = null;
+
+    // Try to get GPS location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                detectedLat = pos.coords.latitude;
+                detectedLon = pos.coords.longitude;
+                document.getElementById("locationStatus").innerText =
+                    `📍 Location: ${detectedLat.toFixed(4)}, ${detectedLon.toFixed(4)}`;
+            },
+            () => {
+                document.getElementById("locationStatus").innerText = "📍 Location: not available";
+            }
+        );
+    } else {
+        document.getElementById("locationStatus").innerText = "📍 Location: not supported";
+    }
+
+    function previewImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById("imagePreview").src = e.target.result;
+            document.getElementById("preview-container").style.display = "block";
+        };
+        reader.readAsDataURL(file);
+        document.getElementById("imageUrl").value = "";
+    }
+
+    function clearFile() {
+        document.getElementById("imageFile").value = "";
+        document.getElementById("preview-container").style.display = "none";
+    }
 
     function uploadProof(btn) {
-        const imageUrl = document.getElementById("imageUrl").value;
         const assignmentId = @ViewBag.AssignmentId;
+        const urlInput = document.getElementById("imageUrl").value.trim();
+        const fileInput = document.getElementById("imageFile").files[0];
 
-        if (!imageUrl || !imageUrl.startsWith("http")) {
-            alert("Please enter a valid image URL");
+        let imageUrl = urlInput;
+
+        // If a file was selected, use the data URL as image URL (for preview/submission)
+        if (!imageUrl && fileInput) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                submitProof(btn, assignmentId, e.target.result);
+            };
+            reader.readAsDataURL(fileInput);
             return;
         }
 
+        if (!imageUrl) {
+            alert("Please select an image file or enter an image URL");
+            return;
+        }
+
+        submitProof(btn, assignmentId, imageUrl);
+    }
+
+    function submitProof(btn, assignmentId, imageUrl) {
         btn.disabled = true;
         btn.innerText = "Uploading...";
 
-        // ✅ API call
-        apiFetch(`/api/Proofs`, {
+        apiFetch("/api/Proofs/submit", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 assignmentId: assignmentId,
                 imageUrl: imageUrl,
-                latitude: 0,
-                longitude: 0
+                latitude: detectedLat ?? 0,
+                longitude: detectedLon ?? 0
             })
         })
         .then(r => {
-            if (!r.ok) throw new Error("Upload failed");
-            alert("✅ Proof uploaded successfully");
-
-            // ✅ Redirect to dashboard
+            if (!r.ok) return r.text().then(t => { throw new Error(t || "Upload failed"); });
+            alert("✅ Proof submitted successfully");
             window.location.href = "/Worker/Dashboard";
         })
         .catch(err => {
-            alert(err.message);
+            alert("❌ " + err.message);
             btn.disabled = false;
-            btn.innerText = "Submit Proof";
+            btn.innerText = "✅ Submit Proof";
         });
     }
 </script>
 
-
 <style>
-    .proof-form {
-        max-width: 400px;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    .upload-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 40px;
     }
 
-        .proof-form input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            margin-bottom: 16px;
-        }
+    .upload-card {
+        width: 100%;
+        max-width: 460px;
+        background: white;
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.12);
+    }
 
-    .btn.submit {
-        background: #2563eb;
-        color: white;
-        padding: 10px 16px;
+    .upload-card h2 { margin-bottom: 6px; }
+    .subtitle { font-size: 14px; color: #6b7280; margin-bottom: 20px; }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .form-group input {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+    }
+
+    .location-status {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 16px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
         border: none;
-        border-radius: 6px;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
         cursor: pointer;
     }
+
+    .btn-submit:hover { opacity: 0.92; }
 </style>

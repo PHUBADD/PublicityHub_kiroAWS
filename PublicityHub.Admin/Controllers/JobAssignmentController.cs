@@ -12,7 +12,6 @@ public class JobAssignmentController : Controller
     }
 
     // GET: /JobAssignment/Assign/{campaignId}
-
     public IActionResult Assign(int id)
     {
         var model = new CreateJobAssignmentViewModel
@@ -23,54 +22,34 @@ public class JobAssignmentController : Controller
         return View(model);
     }
 
+    // POST: /JobAssignment/Assign
+    [HttpPost]
+    public async Task<IActionResult> Assign(CreateJobAssignmentViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
 
-    //// POST: /JobAssignment/Assign
-    //[HttpPost]
-    //public async Task<IActionResult> Assign(CreateJobAssignmentViewModel model)
-    //{
-    //    var client = _factory.CreateClient("PublicityHubApi");
+        var client = _factory.CreateClient("PublicityHubApi");
 
-    //    // ✅ ADD THIS
-    //    var token = HttpContext.Session.GetString("token");
+        var token = HttpContext.Session.GetString("token");
+        if (!string.IsNullOrEmpty(token))
+        {
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
 
-    //    if (!string.IsNullOrEmpty(token))
-    //    {
-    //        client.DefaultRequestHeaders.Authorization =
-    //            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-    //    }
+        var response = await client.PostAsJsonAsync("/api/jobassignments/assign", model);
 
-    //    var response = await client.PostAsJsonAsync(
-    //        "/api/jobassignments/assign",
-    //        model
-    //    );
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            if (error.Contains("already assigned") || error.Contains("unique_worker_campaign"))
+                ModelState.AddModelError("", "⚠️ This worker is already assigned to this campaign.");
+            else
+                ModelState.AddModelError("", "❌ Unable to assign worker.");
+            return View(model);
+        }
 
-    //    if (!response.IsSuccessStatusCode)
-    //    {
-
-
-    //        var error = await response.Content.ReadAsStringAsync();
-    //        Console.WriteLine($"❌ API Error: {response.StatusCode} → {error}");
-
-    //        if (error.Contains("unique_worker_campaign"))
-    //        {
-    //            ModelState.AddModelError(
-    //                "",
-    //                "⚠️ This worker is already assigned to this campaign."
-    //            );
-    //        }
-    //        else
-    //        {
-    //            ModelState.AddModelError(
-    //                "",
-    //                "❌ Unable to assign worker."
-    //            );
-    //        }
-
-    //        return View(model);
-
-
-    //    }
-
-    //    return RedirectToAction("Index", "Dashboard");
-    //}
+        return RedirectToAction("Index", "Dashboard");
+    }
 }

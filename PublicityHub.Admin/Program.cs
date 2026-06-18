@@ -65,6 +65,8 @@ builder.Services.AddHttpClient("PublicityHubApi", client =>
 //  ADMIN AUTH SERVICE
 // ===============================
 builder.Services.AddScoped<AdminAuthService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<PublicityHub.Admin.Services.ApiClient>();
 
 
 var app = builder.Build();
