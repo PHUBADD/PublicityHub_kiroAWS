@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -37,7 +37,7 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* ── Dark mode: campaign cards ── */
+        /* -- Dark mode: campaign cards -- */
         body[data-theme="dark"] .campaign-card {
             background: var(--card-bg) !important;
             color: var(--text-main) !important;
@@ -67,13 +67,13 @@
 
         body[data-theme="dark"] .proof-link { color: #60a5fa !important; }
 
-        /* ── Dark mode: proof cards ── */
+        /* -- Dark mode: proof cards -- */
         body[data-theme="dark"] .proof-card {
             background: var(--card-bg) !important;
             color: var(--text-main) !important;
         }
 
-        /* ── Dark mode: forms / inputs ── */
+        /* -- Dark mode: forms / inputs -- */
         body[data-theme="dark"] input,
         body[data-theme="dark"] textarea,
         body[data-theme="dark"] select {
@@ -95,7 +95,7 @@
             color: var(--text-main) !important;
         }
 
-        /* ── Dark mode: success box ── */
+        /* -- Dark mode: success box -- */
         body[data-theme="dark"] .success-box {
             background: #0f3320;
             color: #6ee7b7;
@@ -149,14 +149,49 @@
                 background: rgba(255,255,255,0.1);
             }
 
-        .success-box {
-            background: #dcfce7;
-            color: #166534;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 15px;
-            font-weight: 600;
+        /* -- Logout Modal -- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
         }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 32px 36px;
+            max-width: 360px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+            animation: modalIn 0.25s ease both;
+        }
+        body[data-theme="light"] .modal-box {
+            background: #ffffff;
+            border-color: #e5e7eb;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+        }
+        @@keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-icon  { font-size: 40px; margin-bottom: 14px; }
+        .modal-title { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+        body[data-theme="light"] .modal-title { color: #111827; }
+        .modal-text  { font-size: 14px; color: #94a3b8; margin-bottom: 24px; }
+        body[data-theme="light"] .modal-text { color: #6b7280; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 10px 26px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s; }
+        .modal-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .modal-btn.cancel  { background: #334155; color: #cbd5e1; }
+        body[data-theme="light"] .modal-btn.cancel { background: #f3f4f6; color: #374151; }
+        .modal-btn.confirm { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; }
     </style>
 </head>
 
@@ -166,7 +201,7 @@
 
         <div class="logo">PublicityHub Panel</div>
 
-        <!-- ✅ ADMIN NAV -->
+        <!-- ? ADMIN NAV -->
         <nav class="nav-links" id="adminNav">
             <a href="/Dashboard/Index">Dashboard</a>
             <a href="/Proof/Index">Proofs</a>
@@ -175,25 +210,38 @@
             <a href="#" onclick="logout()">Logout</a>
         </nav>
 
-        <!-- ✅ PROVIDER NAV -->
+        <!-- ? PROVIDER NAV -->
         <nav class="nav-links" id="providerNav" style="display:none;">
             <a href="/Provider/Dashboard">Dashboard</a>
             <a href="/Campaign/Create">Create Campaign</a>
             <a href="#" onclick="logout()">Logout</a>
         </nav>
 
-        <!-- ✅ LOGOUT ONLY -->
+        <!-- ? LOGOUT ONLY -->
         <nav class="nav-links" id="logoutOnly" style="display:none;">
             <a href="#" onclick="logout()">Logout</a>
         </nav>
 
         <div>
-            <button id="themeToggle" class="theme-btn">🌙 / ☀️</button>
+            <button id="themeToggle" class="theme-btn">?? / ??</button>
             <button onclick="setLang('en')" class="lang-btn">EN</button>
-            <button onclick="setLang('ta')" class="lang-btn">தமிழ்</button>
+            <button onclick="setLang('ta')" class="lang-btn">?????</button>
         </div>
 
     </header>
+
+    <!-- LOGOUT CONFIRM MODAL -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box">
+            <div class="modal-icon">??</div>
+            <div class="modal-title">Logging out?</div>
+            <div class="modal-text">You'll need to sign in again to access your dashboard.</div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeLogoutModal()">Stay</button>
+                <button class="modal-btn confirm" onclick="confirmLogout()">Yes, logout</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Apply saved theme IMMEDIATELY to prevent flash -->
     <script>
@@ -210,10 +258,10 @@
 
     @RenderBody()
 
-    <!-- ✅ API -->
+    <!-- ? API -->
     <script src="/js/api.js"></script>
 
-    <!-- ✅ ROLE + NAV CONTROL -->
+    <!-- ? ROLE + NAV CONTROL -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
@@ -264,7 +312,7 @@
         });
     </script>
 
-    <!-- ✅ THEME -->
+    <!-- ? THEME -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
@@ -287,29 +335,41 @@
         });
     </script>
 
-    <!-- ✅ LANGUAGE -->
+    <!-- ? LANGUAGE -->
     <script>
         function setLang(lang) {
             window.location.href = "/Account/SetLanguage?lang=" + lang;
         }
     </script>
 
-    <!-- ✅ LOGOUT -->
+    <!-- ? LOGOUT -->
     <script>
         function logout() {
+            showLogoutModal();
+        }
+
+        function showLogoutModal() {
+            document.getElementById("logoutModal").classList.add("show");
+        }
+
+        function closeLogoutModal() {
+            document.getElementById("logoutModal").classList.remove("show");
+        }
+
+        function confirmLogout() {
             localStorage.removeItem("token");
             window.location.href = "/Account/Login";
         }
     </script>
 
-    <!-- ✅ API BASE -->
+    <!-- ? API BASE -->
     <script>
         window.API_BASE = window.location.hostname === "localhost"
             ? "https://localhost:7166"
             : "";
     </script>
 
-    <!-- ✅ jQuery -->
+    <!-- ? jQuery -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)

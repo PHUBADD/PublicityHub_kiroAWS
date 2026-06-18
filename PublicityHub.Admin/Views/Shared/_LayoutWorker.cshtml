@@ -285,10 +285,41 @@
         }
         .toast.show { opacity: 1; }
 
-        /* =========================================
-           PAGE TITLE
-        ========================================= */
-        .page-title {
+        /* ── Logout Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 32px 36px;
+            max-width: 360px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+            animation: modalIn 0.25s ease both;
+        }
+        @@keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-icon  { font-size: 40px; margin-bottom: 14px; }
+        .modal-title { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+        .modal-text  { font-size: 14px; color: #94a3b8; margin-bottom: 24px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 10px 26px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s; }
+        .modal-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .modal-btn.cancel  { background: #334155; color: #cbd5e1; }
+        .modal-btn.confirm { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; }
             font-size: 24px;
             font-weight: 700;
             margin-bottom: 24px;
@@ -312,6 +343,19 @@
             <button onclick="logout()" class="action-btn">Logout</button>
         </div>
     </header>
+
+    <!-- LOGOUT MODAL -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box">
+            <div class="modal-icon">🚪</div>
+            <div class="modal-title">Logging out?</div>
+            <div class="modal-text">You'll need to sign in again to access your dashboard.</div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeLogoutModal()">Stay</button>
+                <button class="modal-btn confirm" onclick="confirmLogout()">Yes, logout</button>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         @RenderBody()
@@ -362,6 +406,20 @@
         });
 
         function logout() {
+            showLogoutModal();
+        }
+
+        function showLogoutModal() {
+            const m = document.getElementById("logoutModal");
+            if (m) m.classList.add("show");
+        }
+
+        function closeLogoutModal() {
+            const m = document.getElementById("logoutModal");
+            if (m) m.classList.remove("show");
+        }
+
+        function confirmLogout() {
             localStorage.removeItem("token");
             window.location.href = "/Account/Login";
         }
