@@ -41,7 +41,7 @@ public class UserService : IUserService
         }
 
 
-        var token = _jwtService.GenerateToken(user.Id, user.Role);
+        var token = _jwtService.GenerateToken(user.Id, user.Role, user.FullName);
 
         return new LoginResponseDto
         {

@@ -61,10 +61,10 @@
                         </span>
 
                         <div class="progress-bar">
-                            <div class="step ${job.status === "Available" ? "active" : ""}">Assigned</div>
-                            <div class="step ${job.status === "Accepted" ? "active" : ""}">Accepted</div>
-                            <div class="step ${job.status === "ProofSubmitted" ? "active" : ""}">Submitted</div>
-                            <div class="step ${job.status === "Approved" ? "active" : ""}">Approved</div>
+                            <div class="step ${['Available','Accepted','ProofSubmitted','Approved'].includes(job.status) ? 'done' : ''} ${job.status === 'Available' ? 'active' : ''}">Assigned</div>
+                            <div class="step ${['Accepted','ProofSubmitted','Approved'].includes(job.status) ? 'done' : ''} ${job.status === 'Accepted' ? 'active' : ''}">Accepted</div>
+                            <div class="step ${['ProofSubmitted','Approved'].includes(job.status) ? 'done' : ''} ${job.status === 'ProofSubmitted' ? 'active' : ''}">Submitted</div>
+                            <div class="step ${job.status === 'Approved' ? 'done active' : ''}">Approved</div>
                         </div>
 
                         <div class="actions">
@@ -158,23 +158,34 @@
 
     .progress-bar {
         display: flex;
-        gap: 8px;
+        flex-wrap: wrap;
+        gap: 6px;
         margin: 10px 0;
+        width: 100%;
     }
 
     .step {
-        flex: 1;
-        padding: 4px;
-        font-size: 12px;
+        flex: 1 1 auto;
+        min-width: 60px;
+        padding: 5px 4px;
+        font-size: 11px;
         text-align: center;
         background: #e5e7eb;
         border-radius: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
         .step.active {
             background: #2563eb;
             color: white;
         }
+
+    .step.done {
+        background: #16a34a;
+        color: white;
+    }
     .toast {
         position: fixed;
         bottom: 20px;
@@ -203,18 +214,20 @@
 
     .worker-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 20px;
     }
 
-
-.worker-card {
-    padding: 18px;
-    border-radius: 14px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    transition: transform 0.2s ease;
-    border-left: 6px solid transparent;
-}
+    .worker-card {
+        padding: 18px;
+        border-radius: 14px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease;
+        border-left: 6px solid transparent;
+        box-sizing: border-box;
+        overflow: hidden;
+        word-break: break-word;
+    }
 
 /* ✅ STATUS COLORS FOR CARDS */
 .worker-card.available {

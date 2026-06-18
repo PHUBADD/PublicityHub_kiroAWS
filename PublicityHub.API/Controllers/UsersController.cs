@@ -72,7 +72,8 @@ public class UsersController : ControllerBase
 
             var token = _jwtService.GenerateToken(
                 user.User.Id,
-                user.User.Role
+                user.User.Role,
+                user.User.FullName
             );
 
             user.Token = token;

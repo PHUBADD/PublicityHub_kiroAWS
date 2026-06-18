@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8" />
     <title>PublicityHub Worker</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <style>
@@ -90,8 +90,9 @@
             <a href="/Worker/Dashboard">My Jobs</a>
         </nav>
 
-        <div>
-            <button id="themeToggle" class="action-btn">?? / ??</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span id="workerName" style="color:#d1d5db; font-size:14px;"></span>
+            <button id="themeToggle" class="action-btn" title="Toggle dark/light mode">&#127769; / &#9728;&#65039;</button>
             <button onclick="logout()" class="action-btn">Logout</button>
         </div>
     </header>
@@ -124,7 +125,7 @@
                 document.body.setAttribute("data-theme", savedTheme);
             }
 
-            // ? Token validation
+            // Token validation + show worker name
             const token = localStorage.getItem("token");
 
             if (!token || token === "null" || token === "undefined" || token.trim() === "") {
@@ -135,6 +136,14 @@
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+                const name = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
+                          || payload["name"]
+                          || payload["unique_name"]
+                          || "";
+
+                // Show worker name in header
+                const nameEl = document.getElementById("workerName");
+                if (nameEl && name) nameEl.innerText = "👷 " + name;
 
                 if (!role || role.toLowerCase() !== "worker") {
                     window.location.href = "/Account/Login";

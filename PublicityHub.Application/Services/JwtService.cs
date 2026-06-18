@@ -15,13 +15,14 @@ namespace PublicityHub.Application.Services
             _config = config;
         }
 
-        public string GenerateToken(int userId, string role)
+        public string GenerateToken(int userId, string role, string fullName = "")
         {
             var claims = new[]
             {
-        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-        new Claim(ClaimTypes.Role, role)
-    };
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.Name, fullName)
+            };
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
